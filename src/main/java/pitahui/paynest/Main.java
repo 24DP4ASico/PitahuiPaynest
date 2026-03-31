@@ -3,6 +3,8 @@ package pitahui.paynest;
 import lv.pitahui.paynest.db.DBConnection;
 import lv.pitahui.paynest.db.UserDAO;
 import lv.pitahui.paynest.db.SubscriptionDAO;
+import lv.pitahui.paynest.db.PaymentDAO;
+import lv.pitahui.paynest.db.IBANDAO;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -106,21 +108,162 @@ public class Main {
             printSeparator();
             System.out.println("User menu\n");
             System.out.println(" 1) Subscriptions");
-            System.out.println(" 2) Account settings");
-            System.out.println(" 3) Logout");
+            System.out.println(" 2) Pay for subscription");
+            System.out.println(" 3) Account settings");
+            System.out.println(" 4) Logout");
             System.out.print("\n> ");
             String c = scanner.nextLine().trim();
             if (c.equals("1")) {
                 subscriptionsMenu(auth, scanner);
             } else if (c.equals("2")) {
-                accountSettingsMenu(auth, scanner);
+                paymentMenu(auth, scanner);
             } else if (c.equals("3")) {
+                accountSettingsMenu(auth, scanner);
+            } else if (c.equals("4")) {
                 System.out.println("Logged out");
                 break;
             } else {
                 System.out.println("Unknown choice");
             }
         }
+    }
+
+    private static void paymentMenu(User auth, Scanner scanner) throws SQLException {
+        printSeparator();
+        System.out.println("Pay for subscription\n");
+        
+        // Load user's IBAN account from database
+        IBAN ibanAccount = null;
+        try {
+            ibanAccount = IBANDAO.getByIBANNumber(auth.getIBAN());
+            if (ibanAccount == null) {
+                System.out.println("Error: No bank account found for your IBAN.");
+                System.out.println("Please set up a bank account before making payments.");
+                return;
+            }
+            auth.setIbanObject(ibanAccount);
+        } catch (SQLException e) {
+            System.out.println("Error retrieving bank account: " + e.getMessage());
+            return;
+        }
+        
+        // Get all available subscriptions
+        List<Map<String, Object>> subscriptions = SubscriptionDAO.listAll();
+        
+        if (subscriptions.isEmpty()) {
+            System.out.println("No subscriptions available at the moment.");
+            return;
+        }
+        
+        // Display available subscriptions
+        System.out.println("Available subscriptions:\n");
+        for (int i = 0; i < subscriptions.size(); i++) {
+            var sub = subscriptions.get(i);
+            System.out.printf(" %d) %s - €%.2f (%d days) - Type: %s\n",
+                    i + 1, sub.get("name"), sub.get("price"), sub.get("duration"), sub.get("type"));
+        }
+        
+        // Display current balance
+        System.out.printf("\nYour bank account balance: €%.2f\n", ibanAccount.getBalance());
+        
+        System.out.print("\nSelect subscription to pay for (or 0 to cancel): ");
+        String choiceStr = scanner.nextLine().trim();
+        
+        try {
+            int choice = Integer.parseInt(choiceStr);
+            
+            if (choice == 0) {
+                System.out.println("Payment cancelled.");
+                return;
+            }
+            
+            if (choice < 1 || choice > subscriptions.size()) {
+                System.out.println("Invalid selection.");
+                return;
+            }
+            
+            // Get selected subscription details
+            var selectedSub = subscriptions.get(choice - 1);
+            
+            // Create Subscription object from database result
+            Subscription subscription = new Subscription(
+                    (String) selectedSub.get("name"),
+                    (String) selectedSub.get("type"),
+                    ((Number) selectedSub.get("duration")).intValue(),
+                    ((Number) selectedSub.get("price")).floatValue()
+            );
+            subscription.setSubscriptionId(((Number) selectedSub.get("id")).intValue());
+            
+            Float amount = subscription.getSubscriptionPrice();
+            
+            // Check if user has enough balance
+            if (!ibanAccount.hasEnoughBalance(amount)) {
+                System.out.println("\n✗ Insufficient balance!");
+                System.out.printf("  Required: €%.2f\n", amount);
+                System.out.printf("  Available: €%.2f\n", ibanAccount.getBalance());
+                return;
+            }
+            
+            // Verify payment details
+            printSeparator();
+            System.out.println("Payment Summary:");
+            System.out.printf(" Subscription: %s\n", subscription.getSubscriptionName());
+            System.out.printf(" Price: €%.2f\n", amount);
+            System.out.printf(" User: %s %s\n", auth.getName(), auth.getSurname());
+            System.out.printf(" IBAN: %s\n", maskIBAN(auth.getIBAN()));
+            System.out.printf(" Current Balance: €%.2f\n", ibanAccount.getBalance());
+            System.out.printf(" Balance after payment: €%.2f\n", ibanAccount.getBalance() - amount);
+            System.out.println();
+            
+            // Confirm payment
+            System.out.print("Confirm payment? (yes/no): ");
+            String confirm = scanner.nextLine().trim().toLowerCase();
+            
+            if (!confirm.equals("yes")) {
+                System.out.println("Payment cancelled.");
+                return;
+            }
+            
+            // Process payment
+            System.out.println("\nProcessing payment...");
+            Payment payment = new Payment(auth, subscription, "IBAN", amount);
+            
+            if (payment.processPayment()) {
+                // Deduct balance from IBAN account
+                try {
+                    ibanAccount.deductBalance(amount);
+                    IBANDAO.deductBalance(ibanAccount.getId(), amount);
+                    
+                    // Save payment to database
+                    PaymentDAO.insert(payment);
+                    System.out.println("✓ Payment successful!");
+                    System.out.printf("  Transaction ID: %s\n", payment.getTransactionReference());
+                    System.out.printf("  Status: %s\n", payment.getStatus());
+                    System.out.printf("  Amount deducted: €%.2f\n", payment.getAmount());
+                    System.out.printf("  New balance: €%.2f\n", ibanAccount.getBalance());
+                } catch (IllegalArgumentException e) {
+                    System.out.println("✗ Payment failed: " + e.getMessage());
+                } catch (SQLException e) {
+                    System.out.println("✗ Payment processed but failed to save to database!");
+                    System.out.printf("  Error: %s\n", e.getMessage());
+                }
+            } else {
+                System.out.println("✗ Payment failed!");
+                System.out.printf("  Reason: %s\n", payment.getNotes());
+            }
+            
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input. Please enter a number.");
+        }
+    }
+
+    private static String maskIBAN(String iban) {
+        if (iban == null || iban.length() < 8) {
+            return "****";
+        }
+        String start = iban.substring(0, 4);
+        String end = iban.substring(iban.length() - 4);
+        return start + "..." + end;
     }
 
     private static void subscriptionsMenu(User auth, Scanner scanner) throws SQLException {

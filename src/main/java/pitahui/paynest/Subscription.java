@@ -4,6 +4,7 @@ import lv.pitahui.paynest.db.SubscriptionDAO;
 import java.sql.SQLException;
 
 public class Subscription {
+    private Integer subscriptionId;
     private String subscriptionName;
     private String subscriptionType;
     private Integer subscriptionDuration;
@@ -43,6 +44,14 @@ public class Subscription {
 
     public Float getSubscriptionPrice() {
         return subscriptionPrice;
+    }
+
+    public Integer getSubscriptionId() {
+        return subscriptionId;
+    }
+
+    public void setSubscriptionId(Integer subscriptionId) {
+        this.subscriptionId = subscriptionId;
     }
 
     public void save() {

@@ -51,8 +51,8 @@ public class SubscriptionDAO {
                 m.put("id", rs.getInt("Abonementa_ID"));
                 m.put("name", rs.getString("Nosaukums"));
                 m.put("type", rs.getString("Veids"));
-                m.put("price", rs.getString("Cena"));
-                m.put("duration", rs.getObject("Ilgums"));
+                m.put("price", rs.getFloat("Cena"));
+                m.put("duration", rs.getInt("Ilgums"));
                 m.put("activated", rs.getString("Aktivizacijas_datums"));
                 out.add(m);
             }

@@ -5,10 +5,12 @@ import java.sql.SQLException;
 
 public class User{
 
+    private Integer id;
     private String Name;
     private String Surname;
     private String Phonenum;
     private String IBAN;
+    private IBAN ibanObject;
     private String password;
 
     public User(String Name, String Surname, String Phonenum, String IBAN) {
@@ -58,6 +60,14 @@ public class User{
         this.password = password;
     }
 
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
     public void changeName(String newName) {
         this.Name = newName;
     }
@@ -72,6 +82,14 @@ public class User{
 
     public void changeIBAN(String newIBAN) {
         this.IBAN = newIBAN;
+    }
+
+    public IBAN getIbanObject() {
+        return ibanObject;
+    }
+
+    public void setIbanObject(IBAN ibanObject) {
+        this.ibanObject = ibanObject;
     } 
 
     public void save() {

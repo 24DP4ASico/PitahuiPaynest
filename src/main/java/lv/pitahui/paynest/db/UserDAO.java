@@ -35,6 +35,7 @@ public class UserDAO {
                 if (rs.next()) {
                     User u = new User(rs.getString("Vards"), rs.getString("Uzvards"), rs.getString("Talrunis"), rs.getString("IBAN"));
                     u.setPassword(rs.getString("Password"));
+                    u.setId(rs.getInt("Lietotaja_ID"));
                     return u;
                 }
             }
