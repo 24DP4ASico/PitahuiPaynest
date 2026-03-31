@@ -9,11 +9,10 @@ public class DBSetup {
     public static void recreateTables() throws SQLException {
         String sql = """
             PRAGMA foreign_keys = OFF;
-
-            DROP TABLE IF EXISTS Maksajums;
-            DROP TABLE IF EXISTS Pazinojums;
-            DROP TABLE IF EXISTS Lietotajs;
-            DROP TABLE IF EXISTS Abonements;
+            Drop table if exists Lietotajs;
+            Drop table if exists Abonements;
+            Drop table if exists Maksajums;
+            Drop table if exists Pazinojums;
 
             PRAGMA foreign_keys = ON;
 
@@ -21,8 +20,8 @@ public class DBSetup {
                 Lietotaja_ID INTEGER PRIMARY KEY AUTOINCREMENT,
                 Vards TEXT(60),
                 Uzvards TEXT(60),
-                Talrunis TEXT(15),
-                IBAN TEXT(32),
+                Talrunis TEXT(15) UNIQUE,
+                IBAN TEXT(32) UNIQUE,
                 Password TEXT(100)
             );
 
