@@ -1,3 +1,5 @@
+package pitahui.paynest;
+
 public class User{
 
     private String Name;
@@ -58,21 +60,11 @@ public class User{
 
     public void changeIBAN(String newIBAN) {
         this.IBAN = newIBAN;
-    }
-
-    
-
-
+    } 
 
     @Override
     public String toString() {
-        return "User{" + "Name=" + Name + ", Surname=" + Surname + ", Phonenum=" + Phonenum + ", IBAN=" + IBAN + '}';
+        return "User:" + "Name = " + Name + ", Surname = " + Surname + ", Phonenum = " + Phonenum + ", IBAN = " + IBAN;
     }
 
-
-
-
-
 }
-    
-

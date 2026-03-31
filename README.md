@@ -162,3 +162,16 @@ Sistēma izmanto četras galvenās tabulas:
 
 ## 📄 Licence
 *(Ja nepieciešams, varu pievienot MIT, GPL, CC BY-NC u.c.)*
+
+---
+
+## Build (Maven)
+
+Project has been refactored to a standard Maven layout. To build with Java 21:
+
+```bash
+mvn -v
+mvn clean package
+```
+
+If you use the JDK directly, sources are under `src/main/java/pitahui/paynest`.
