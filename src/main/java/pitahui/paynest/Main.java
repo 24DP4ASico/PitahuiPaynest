@@ -1,77 +1,114 @@
 package pitahui.paynest;
 
-import lv.pitahui.paynest.db.DBSetup;
 import lv.pitahui.paynest.db.DBConnection;
 import lv.pitahui.paynest.db.UserDAO;
+import lv.pitahui.paynest.db.SubscriptionDAO;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
+        clearScreen();
+        printHeader("Pitahui Paynest - Terminal Interface");
+
+        Scanner scanner = new Scanner(System.in);
         try {
-            // ensure DB is available (do not recreate tables here to preserve data)
-
-            Scanner scanner = new Scanner(System.in);
-
             while (true) {
-                System.out.println("\nChoose: 1=Register 2=Login 3=Delete 4=Exit");
+                printSeparator();
+                System.out.println("Main menu\n");
+                System.out.println(" 1) Register");
+                System.out.println(" 2) Login");
+                System.out.println(" 3) Delete account");
+                System.out.println(" 4) Exit");
+                System.out.print("\n> ");
                 String choice = scanner.nextLine().trim();
-                if (choice.equals("1")) {
-                    System.out.print("First name: ");
-                    String fn = scanner.nextLine().trim();
-                    System.out.print("Last name: ");
-                    String ln = scanner.nextLine().trim();
-                    System.out.print("Phone: ");
-                    String phone = scanner.nextLine().trim();
-                    System.out.print("IBAN: ");
-                    String iban = scanner.nextLine().trim();
-                    System.out.print("Password: ");
-                    String pwd = scanner.nextLine();
 
-                    User u = new User(fn, ln, phone, iban);
-                    u.setPassword(pwd);
-                    u.save();
-                    System.out.println("Account created for " + fn + " " + ln);
+                if (choice.equals("1")) {
+                    registerFlow(scanner);
                 } else if (choice.equals("2")) {
-                    System.out.print("Phone: ");
-                    String phone = scanner.nextLine().trim();
-                    System.out.print("Password: ");
-                    String pwd = scanner.nextLine();
-                    User auth = UserDAO.authenticate(phone, pwd);
-                    if (auth != null) {
-                        System.out.println("Login success: " + auth);
-                        // enter user menu
-                        userMenu(auth, scanner);
-                    } else {
-                        System.out.println("Login failed");
-                    }
+                    loginFlow(scanner);
                 } else if (choice.equals("3")) {
-                    System.out.print("Phone to delete: ");
-                    String phone = scanner.nextLine().trim();
-                    System.out.print("Password: ");
-                    String pwd = scanner.nextLine();
-                    boolean deleted = UserDAO.deleteByPhoneAndPassword(phone, pwd);
-                    System.out.println(deleted ? "Account deleted" : "No matching account");
+                    deleteFlow(scanner);
                 } else if (choice.equals("4")) {
-                    System.out.println("Exiting");
+                    System.out.println("Exiting. Goodbye.");
                     break;
                 } else {
-                    System.out.println("Unknown choice");
+                    System.out.println("Unknown choice — please enter 1, 2, 3 or 4");
                 }
             }
+        } finally {
             scanner.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 
+    private static void registerFlow(Scanner scanner) {
+        printSeparator();
+        System.out.println("Create new account\n");
+        System.out.print(" First name: ");
+        String fn = scanner.nextLine().trim();
+        System.out.print(" Last name : ");
+        String ln = scanner.nextLine().trim();
+        System.out.print(" Phone     : ");
+        String phone = scanner.nextLine().trim();
+        System.out.print(" IBAN      : ");
+        String iban = scanner.nextLine().trim();
+        System.out.print(" Password  : ");
+        String pwd = scanner.nextLine();
+
+        User u = new User(fn, ln, phone, iban);
+        u.setPassword(pwd);
+        u.save();
+        System.out.println("\nAccount created for " + fn + " " + ln);
+    }
+
+    private static void loginFlow(Scanner scanner) {
+        try {
+            printSeparator();
+            System.out.println("Login\n");
+            System.out.print(" Phone: ");
+            String phone = scanner.nextLine().trim();
+            System.out.print(" Password: ");
+            String pwd = scanner.nextLine();
+            User auth = UserDAO.authenticate(phone, pwd);
+            if (auth != null) {
+                System.out.println("\nLogin success: " + auth.getName() + " " + auth.getSurname());
+                userMenu(auth, scanner);
+            } else {
+                System.out.println("\nLogin failed: wrong phone or password");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error during login: " + e.getMessage());
+        }
+    }
+
+    private static void deleteFlow(Scanner scanner) {
+        try {
+            printSeparator();
+            System.out.println("Delete account\n");
+            System.out.print(" Phone to delete: ");
+            String phone = scanner.nextLine().trim();
+            System.out.print(" Password: ");
+            String pwd = scanner.nextLine();
+            boolean deleted = UserDAO.deleteByPhoneAndPassword(phone, pwd);
+            System.out.println(deleted ? "\nAccount deleted" : "\nNo matching account");
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
 
     private static void userMenu(User auth, Scanner scanner) throws SQLException {
         while (true) {
-            System.out.println("\nUser menu: 1=Subscriptions 2=Account settings 3=Logout");
+            printSeparator();
+            System.out.println("User menu\n");
+            System.out.println(" 1) Subscriptions");
+            System.out.println(" 2) Account settings");
+            System.out.println(" 3) Logout");
+            System.out.print("\n> ");
             String c = scanner.nextLine().trim();
             if (c.equals("1")) {
                 subscriptionsMenu(auth, scanner);
@@ -87,10 +124,12 @@ public class Main {
     }
 
     private static void subscriptionsMenu(User auth, Scanner scanner) throws SQLException {
-        System.out.println("\nSubscriptions: 1=List 2=Create 3=Edit 4=Delete 5=Back");
+        printSeparator();
+        System.out.println("Subscriptions: 1=List 2=Create 3=Edit 4=Delete 5=Back");
+        System.out.print("\n> ");
         String s = scanner.nextLine().trim();
         if (s.equals("1")) {
-            java.util.List<java.util.Map<String,Object>> list = lv.pitahui.paynest.db.SubscriptionDAO.listAll();
+            List<Map<String, Object>> list = SubscriptionDAO.listAll();
             for (var m : list) {
                 System.out.printf("id=%s, name=%s, type=%s, price=%s, duration=%s\n",
                         m.get("id"), m.get("name"), m.get("type"), m.get("price"), m.get("duration"));
@@ -119,12 +158,12 @@ public class Main {
             System.out.print("New price: ");
             Float price = Float.valueOf(scanner.nextLine().trim());
             Subscription sub = new Subscription(name, type, dur, price);
-            boolean ok = lv.pitahui.paynest.db.SubscriptionDAO.update(id, sub);
+            boolean ok = SubscriptionDAO.update(id, sub);
             System.out.println(ok ? "Subscription updated" : "Update failed");
         } else if (s.equals("4")) {
             System.out.print("Subscription id to delete: ");
             int id = Integer.parseInt(scanner.nextLine().trim());
-            boolean ok = lv.pitahui.paynest.db.SubscriptionDAO.deleteById(id);
+            boolean ok = SubscriptionDAO.deleteById(id);
             System.out.println(ok ? "Deleted" : "Delete failed");
         } else {
             // back
@@ -132,7 +171,9 @@ public class Main {
     }
 
     private static void accountSettingsMenu(User auth, Scanner scanner) throws SQLException {
-        System.out.println("\nAccount settings: 1=View 2=Edit account data 3=Change password 4=Delete account 5=Back");
+        printSeparator();
+        System.out.println("Account settings: 1=View 2=Edit account data 3=Change password 4=Delete account 5=Back");
+        System.out.print("\n> ");
         String a = scanner.nextLine().trim();
         if (a.equals("1")) {
             User u = UserDAO.getByPhone(auth.getPhonenum());
@@ -151,7 +192,6 @@ public class Main {
             boolean ok = UserDAO.updateProfile(auth.getPhonenum(), oldp, nf, nl, np, ni);
             System.out.println(ok ? "Profile updated" : "Profile update failed (wrong password?)");
             if (ok) {
-                // refresh auth object
                 User updated = UserDAO.getByPhone(np);
                 if (updated != null) {
                     auth.setName(updated.getName());
@@ -180,9 +220,26 @@ public class Main {
             String pwd = scanner.nextLine();
             boolean deleted = UserDAO.deleteByPhoneAndPassword(auth.getPhonenum(), pwd);
             System.out.println(deleted ? "Account deleted" : "Delete failed");
-            if (deleted) throw new SQLException("AccountDeleted");
+            if (deleted) {
+                System.out.println("You have been logged out (account deleted).");
+                return; // return to main menu
+            }
         } else {
             // back
         }
+    }
+
+    private static void printHeader(String title) {
+        System.out.println("========================================");
+        System.out.println(title);
+        System.out.println("========================================");
+    }
+
+    private static void printSeparator() {
+        System.out.println("----------------------------------------");
+    }
+
+    private static void clearScreen() {
+        for (int i = 0; i < 30; i++) System.out.println();
     }
 }
