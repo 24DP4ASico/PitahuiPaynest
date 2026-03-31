@@ -22,7 +22,8 @@ public class DBSetup {
                 Vards TEXT(60),
                 Uzvards TEXT(60),
                 Talrunis TEXT(15),
-                IBAN TEXT(32)
+                IBAN TEXT(32),
+                Password TEXT(100)
             );
 
             CREATE TABLE Abonements (

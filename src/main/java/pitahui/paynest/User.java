@@ -9,6 +9,7 @@ public class User{
     private String Surname;
     private String Phonenum;
     private String IBAN;
+    private String password;
 
     public User(String Name, String Surname, String Phonenum, String IBAN) {
         this.Name = Name;
@@ -47,6 +48,14 @@ public class User{
     
     public void setIBAN(String IBAN) {
         this.IBAN = IBAN;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public void changeName(String newName) {
