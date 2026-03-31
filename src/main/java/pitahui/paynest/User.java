@@ -1,5 +1,8 @@
 package pitahui.paynest;
 
+import lv.pitahui.paynest.db.UserDAO;
+import java.sql.SQLException;
+
 public class User{
 
     private String Name;
@@ -61,6 +64,14 @@ public class User{
     public void changeIBAN(String newIBAN) {
         this.IBAN = newIBAN;
     } 
+
+    public void save() {
+        try {
+            UserDAO.insert(this);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
     @Override
     public String toString() {

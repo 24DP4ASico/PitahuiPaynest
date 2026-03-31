@@ -29,17 +29,17 @@ public class DBSetup {
                 Abonementa_ID INTEGER PRIMARY KEY AUTOINCREMENT,
                 Nosaukums TEXT(200),
                 Veids TEXT(100),
-                Cena REAL,
-                Ilgums INTEGER,
-                Aktivizacijas_datums TEXT
+                Cena REAL(10, 2),
+                Ilgums integer,
+                Aktivizacijas_datums Date
             );
 
             CREATE TABLE Maksajums (
                 Maksajuma_ID INTEGER PRIMARY KEY AUTOINCREMENT,
                 Abonementa_ID INTEGER,
                 Lietotaja_ID INTEGER,
-                Summa REAL,
-                Datums_un_Laiks TEXT,
+                Summa REAL(10, 2),
+                Datums_un_Laiks DATETIME,
                 Statuss TEXT(30),
                 FOREIGN KEY (Abonementa_ID) REFERENCES Abonements(Abonementa_ID),
                 FOREIGN KEY (Lietotaja_ID) REFERENCES Lietotajs(Lietotaja_ID)
@@ -50,7 +50,7 @@ public class DBSetup {
                 Lietotaja_ID INTEGER,
                 Abonementa_ID INTEGER,
                 Teksts TEXT(300),
-                Izveides_datums TEXT,
+                Izveides_datums Date,
                 Dienas_lidz_terminam INTEGER,
                 FOREIGN KEY (Lietotaja_ID) REFERENCES Lietotajs(Lietotaja_ID),
                 FOREIGN KEY (Abonementa_ID) REFERENCES Abonements(Abonementa_ID)
