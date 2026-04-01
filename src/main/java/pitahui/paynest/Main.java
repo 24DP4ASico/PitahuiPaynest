@@ -147,10 +147,7 @@ public class Main {
     private static void userMenu(User auth, Scanner scanner) throws SQLException {
         while (true) {
             try {
-                // Generate notifications for paid subscriptions before showing menu
-                generateNotifications(auth);
-                
-                // Get notification count
+                // Get notification count (safe query, minimal database access)
                 List<Map<String, Object>> userNotifications = NotificationDAO.getNotificationsByUserId(auth.getId());
                 int notificationCount = userNotifications.size();
                 
@@ -408,6 +405,13 @@ public class Main {
                 System.out.println("\n✓ Payment successful!");
                 System.out.printf("Amount paid: %.2f EUR\n", price);
                 System.out.printf("New balance: %.2f EUR\n", newBalance);
+                
+                // Generate notifications for paid subscriptions
+                try {
+                    generateNotifications(auth);
+                } catch (Exception e) {
+                    // Notification generation is not critical, don't fail payment on error
+                }
             } else {
                 System.out.println("\nERROR: Payment processing failed. Please try again.");
             }
@@ -551,6 +555,13 @@ public class Main {
     }
 
     private static void notificationsMenu(User auth, Scanner scanner) throws SQLException {
+        // Generate notifications when user opens notifications menu
+        try {
+            generateNotifications(auth);
+        } catch (Exception e) {
+            System.err.println("Warning: Could not generate fresh notifications: " + e.getMessage());
+        }
+        
         printSeparator();
         System.out.println("Notifications\n");
 
@@ -586,49 +597,59 @@ public class Main {
     }
 
     private static void generateNotifications(User auth) throws SQLException {
-        // Get all paid subscriptions for this user
-        String sql = """
-                SELECT a.Abonementa_ID, a.Nosaukums, a.Ilgums, a.Aktivizacijas_datums, m.Maksajuma_ID
-                FROM Maksajums m
-                JOIN Abonements a ON m.Abonementa_ID = a.Abonementa_ID
-                WHERE m.Lietotaja_ID = ? AND m.Statuss = 'SUCCESS'
-                GROUP BY a.Abonementa_ID
-                """;
+        try {
+            // Get all paid subscriptions for this user by checking payment history and subscription details
+            String sql = """
+                    SELECT DISTINCT a.Abonementa_ID, a.Nosaukums, a.Ilgums, a.Aktivizacijas_datums
+                    FROM Abonements a
+                    WHERE a.Lietotaja_ID = ? 
+                    AND EXISTS (
+                        SELECT 1 FROM Maksajums m 
+                        WHERE m.Abonementa_ID = a.Abonementa_ID 
+                        AND m.Lietotaja_ID = ? 
+                        AND m.Statuss = 'SUCCESS'
+                    )
+                    """;
 
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (Connection conn = DBConnection.getConnection();
+                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            pstmt.setInt(1, auth.getId());
-            try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) {
-                    Integer abonementaId = rs.getInt("Abonementa_ID");
-                    String subscriptionName = rs.getString("Nosaukums");
-                    String durationType = rs.getString("Ilgums");
-                    String activationDate = rs.getString("Aktivizacijas_datums");
+                pstmt.setInt(1, auth.getId());
+                pstmt.setInt(2, auth.getId());
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        Integer abonementaId = rs.getInt("Abonementa_ID");
+                        String subscriptionName = rs.getString("Nosaukums");
+                        String durationType = rs.getString("Ilgums");
+                        String activationDate = rs.getString("Aktivizacijas_datums");
 
-                    // Calculate days until expiry
-                    Integer daysUntilExpiry = NotificationDAO.calculateDaysUntilExpiry(durationType, activationDate);
+                        // Calculate days until expiry
+                        Integer daysUntilExpiry = NotificationDAO.calculateDaysUntilExpiry(durationType, activationDate);
 
-                    // Check if notification should be created for this day threshold
-                    int[] thresholds = {10, 7, 5, 2, 1};
-                    for (int threshold : thresholds) {
-                        if (daysUntilExpiry == threshold) {
-                            // Check if notification already exists for this subscription at this threshold
-                            if (!notificationExists(abonementaId, threshold)) {
-                                // Create the notification
-                                NotificationDAO.createSubscriptionNotification(
-                                        auth.getId(),
-                                        abonementaId,
-                                        subscriptionName,
-                                        durationType,
-                                        activationDate
-                                );
+                        // Check if notification should be created for this day threshold
+                        int[] thresholds = {10, 7, 5, 2, 1};
+                        for (int threshold : thresholds) {
+                            if (daysUntilExpiry == threshold) {
+                                // Check if notification already exists for this subscription at this threshold
+                                if (!notificationExists(abonementaId, threshold)) {
+                                    // Create the notification
+                                    NotificationDAO.createSubscriptionNotification(
+                                            auth.getId(),
+                                            abonementaId,
+                                            subscriptionName,
+                                            durationType,
+                                            activationDate
+                                    );
+                                }
+                                break; // Only create one notification per subscription per day
                             }
-                            break; // Only create one notification per subscription per day
                         }
                     }
                 }
             }
+        } catch (SQLException e) {
+            // Log error but don't crash the menu - notifications are not critical
+            System.err.println("Warning: Could not generate notifications: " + e.getMessage());
         }
     }
 
