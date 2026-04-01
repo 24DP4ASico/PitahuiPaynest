@@ -5,10 +5,12 @@ import lv.pitahui.paynest.db.UserDAO;
 import lv.pitahui.paynest.db.SubscriptionDAO;
 import lv.pitahui.paynest.db.BankAccountDAO;
 import lv.pitahui.paynest.db.PaymentDAO;
+import lv.pitahui.paynest.db.NotificationDAO;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.PreparedStatement;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -70,10 +72,11 @@ public class Main {
             // Get the newly created user's ID
             User created = UserDAO.authenticate(phone, pwd);
             if (created != null) {
-                // Create bank account for new user with initial balance of 100 EUR
-                BankAccountDAO.createAccount(created.getId(), 100.0);
+                // Create bank account for new user with random balance between 100 and 2000
+                double randomBalance = 100 + (Math.random() * 1900);
+                BankAccountDAO.createAccount(created.getId(), randomBalance);
                 System.out.println("\nAccount created for " + fn + " " + ln);
-                System.out.println("Initial bank account balance: 100.00 EUR");
+                System.out.printf("Initial bank account balance: %.2f EUR\n", randomBalance);
             }
         } catch (SQLException e) {
             System.out.println("Error creating account: " + e.getMessage());
@@ -108,6 +111,32 @@ public class Main {
             String phone = scanner.nextLine().trim();
             System.out.print(" Password: ");
             String pwd = scanner.nextLine();
+            
+            // First get the user to delete to obtain their ID
+            User userToDelete = UserDAO.authenticate(phone, pwd);
+            if (userToDelete != null) {
+                // Delete bank account and payments first (cascade delete)
+                try {
+                    String deleteBankAccounts = "DELETE FROM Bankas_konts WHERE Lietotaja_ID = ?";
+                    String deletePayments = "DELETE FROM Maksajums WHERE Lietotaja_ID = ?";
+                    String deleteSubscriptions = "DELETE FROM Abonements WHERE Lietotaja_ID = ?";
+                    
+                    try (Connection conn = DBConnection.getConnection();
+                         PreparedStatement stmt1 = conn.prepareStatement(deletePayments);
+                         PreparedStatement stmt2 = conn.prepareStatement(deleteBankAccounts);
+                         PreparedStatement stmt3 = conn.prepareStatement(deleteSubscriptions)) {
+                        stmt1.setInt(1, userToDelete.getId());
+                        stmt2.setInt(1, userToDelete.getId());
+                        stmt3.setInt(1, userToDelete.getId());
+                        stmt1.executeUpdate();
+                        stmt2.executeUpdate();
+                        stmt3.executeUpdate();
+                    }
+                } catch (SQLException e) {
+                    // If cascade deletion fails, continue to attempt user deletion
+                }
+            }
+            
             boolean deleted = UserDAO.deleteByPhoneAndPassword(phone, pwd);
             System.out.println(deleted ? "\nAccount deleted" : "\nNo matching account");
         } catch (SQLException e) {
@@ -117,28 +146,42 @@ public class Main {
 
     private static void userMenu(User auth, Scanner scanner) throws SQLException {
         while (true) {
-            printSeparator();
-            System.out.println("User menu\n");
-            System.out.println(" 1) Subscriptions");
-            System.out.println(" 2) Account settings");
-            System.out.println(" 3) Pay for subscription");
-            System.out.println(" 4) Payment history");
-            System.out.println(" 5) Logout");
-            System.out.print("\n> ");
-            String c = scanner.nextLine().trim();
-            if (c.equals("1")) {
-                subscriptionsMenu(auth, scanner);
-            } else if (c.equals("2")) {
-                accountSettingsMenu(auth, scanner);
-            } else if (c.equals("3")) {
-                paymentFlow(auth, scanner);
-            } else if (c.equals("4")) {
-                paymentHistoryMenu(auth, scanner);
-            } else if (c.equals("5")) {
-                System.out.println("Logged out");
-                break;
-            } else {
-                System.out.println("Unknown choice");
+            try {
+                // Generate notifications for paid subscriptions before showing menu
+                generateNotifications(auth);
+                
+                // Get notification count
+                List<Map<String, Object>> userNotifications = NotificationDAO.getNotificationsByUserId(auth.getId());
+                int notificationCount = userNotifications.size();
+                
+                printSeparator();
+                System.out.println("User menu\n");
+                System.out.println(" 1) Subscriptions");
+                System.out.println(" 2) Account settings");
+                System.out.println(" 3) Pay for subscription");
+                System.out.println(" 4) Payment history");
+                System.out.printf(" 5) Notifications (%d)\n", notificationCount);
+                System.out.println(" 6) Logout");
+                System.out.print("\n> ");
+                String c = scanner.nextLine().trim();
+                if (c.equals("1")) {
+                    subscriptionsMenu(auth, scanner);
+                } else if (c.equals("2")) {
+                    accountSettingsMenu(auth, scanner);
+                } else if (c.equals("3")) {
+                    paymentFlow(auth, scanner);
+                } else if (c.equals("4")) {
+                    paymentHistoryMenu(auth, scanner);
+                } else if (c.equals("5")) {
+                    notificationsMenu(auth, scanner);
+                } else if (c.equals("6")) {
+                    System.out.println("Logged out");
+                    break;
+                } else {
+                    System.out.println("Unknown choice");
+                }
+            } catch (SQLException e) {
+                System.out.println("Error in user menu: " + e.getMessage());
             }
         }
     }
@@ -474,6 +517,28 @@ public class Main {
         } else if (a.equals("4")) {
             System.out.print("Enter your password to confirm deletion: ");
             String pwd = scanner.nextLine();
+            
+            // Delete bank account, payments, and subscriptions first (cascade delete)
+            try {
+                String deleteBankAccounts = "DELETE FROM Bankas_konts WHERE Lietotaja_ID = ?";
+                String deletePayments = "DELETE FROM Maksajums WHERE Lietotaja_ID = ?";
+                String deleteSubscriptions = "DELETE FROM Abonements WHERE Lietotaja_ID = ?";
+                
+                try (Connection conn = DBConnection.getConnection();
+                     PreparedStatement stmt1 = conn.prepareStatement(deletePayments);
+                     PreparedStatement stmt2 = conn.prepareStatement(deleteBankAccounts);
+                     PreparedStatement stmt3 = conn.prepareStatement(deleteSubscriptions)) {
+                    stmt1.setInt(1, auth.getId());
+                    stmt2.setInt(1, auth.getId());
+                    stmt3.setInt(1, auth.getId());
+                    stmt1.executeUpdate();
+                    stmt2.executeUpdate();
+                    stmt3.executeUpdate();
+                }
+            } catch (SQLException e) {
+                System.out.println("Error deleting related records: " + e.getMessage());
+            }
+            
             boolean deleted = UserDAO.deleteByPhoneAndPassword(auth.getPhonenum(), pwd);
             System.out.println(deleted ? "Account deleted" : "Delete failed");
             if (deleted) {
@@ -483,6 +548,104 @@ public class Main {
         } else {
             // back
         }
+    }
+
+    private static void notificationsMenu(User auth, Scanner scanner) throws SQLException {
+        printSeparator();
+        System.out.println("Notifications\n");
+
+        List<Map<String, Object>> notifications = NotificationDAO.getNotificationsByUserId(auth.getId());
+
+        if (notifications.isEmpty()) {
+            System.out.println("You have no notifications.");
+            return;
+        }
+
+        System.out.println("Your notifications:\n");
+        for (int i = 0; i < notifications.size(); i++) {
+            Map<String, Object> n = notifications.get(i);
+            System.out.printf("%d) %s\n   Created: %s | Days remaining: %s\n",
+                    i + 1,
+                    n.get("teksts"),
+                    n.get("izveidesDateums"),
+                    n.get("dienasLidзTerminam"));
+        }
+        
+        System.out.print("\nEnter notification number to delete (or 0 to go back): ");
+        try {
+            int choice = Integer.parseInt(scanner.nextLine().trim());
+            if (choice > 0 && choice <= notifications.size()) {
+                Map<String, Object> selectedNotif = notifications.get(choice - 1);
+                Integer notifId = ((Number) selectedNotif.get("id")).intValue();
+                boolean deleted = NotificationDAO.deleteById(notifId);
+                System.out.println(deleted ? "Notification deleted" : "Delete failed");
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input");
+        }
+    }
+
+    private static void generateNotifications(User auth) throws SQLException {
+        // Get all paid subscriptions for this user
+        String sql = """
+                SELECT a.Abonementa_ID, a.Nosaukums, a.Ilgums, a.Aktivizacijas_datums, m.Maksajuma_ID
+                FROM Maksajums m
+                JOIN Abonements a ON m.Abonementa_ID = a.Abonementa_ID
+                WHERE m.Lietotaja_ID = ? AND m.Statuss = 'SUCCESS'
+                GROUP BY a.Abonementa_ID
+                """;
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, auth.getId());
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Integer abonementaId = rs.getInt("Abonementa_ID");
+                    String subscriptionName = rs.getString("Nosaukums");
+                    String durationType = rs.getString("Ilgums");
+                    String activationDate = rs.getString("Aktivizacijas_datums");
+
+                    // Calculate days until expiry
+                    Integer daysUntilExpiry = NotificationDAO.calculateDaysUntilExpiry(durationType, activationDate);
+
+                    // Check if notification should be created for this day threshold
+                    int[] thresholds = {10, 7, 5, 2, 1};
+                    for (int threshold : thresholds) {
+                        if (daysUntilExpiry == threshold) {
+                            // Check if notification already exists for this subscription at this threshold
+                            if (!notificationExists(abonementaId, threshold)) {
+                                // Create the notification
+                                NotificationDAO.createSubscriptionNotification(
+                                        auth.getId(),
+                                        abonementaId,
+                                        subscriptionName,
+                                        durationType,
+                                        activationDate
+                                );
+                            }
+                            break; // Only create one notification per subscription per day
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private static boolean notificationExists(Integer abonementaId, Integer daysThreshold) throws SQLException {
+        String sql = "SELECT COUNT(*) as cnt FROM Pazinojums WHERE Abonementa_ID = ? AND Dienas_lidz_terminam = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, abonementaId);
+            pstmt.setInt(2, daysThreshold);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("cnt") > 0;
+                }
+            }
+        }
+        return false;
     }
 
     private static void printHeader(String title) {
