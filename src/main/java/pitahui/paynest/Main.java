@@ -220,23 +220,55 @@ public class Main {
         } else if (a.equals("2")) {
             System.out.print("Enter current password to confirm: ");
             String oldp = scanner.nextLine();
-            System.out.print("New first name: ");
-            String nf = scanner.nextLine().trim();
-            System.out.print("New last name: ");
-            String nl = scanner.nextLine().trim();
-            System.out.print("New phone: ");
-            String np = scanner.nextLine().trim();
-            System.out.print("New IBAN: ");
-            String ni = scanner.nextLine().trim();
-            boolean ok = UserDAO.updateProfile(auth.getPhonenum(), oldp, nf, nl, np, ni);
-            System.out.println(ok ? "Profile updated" : "Profile update failed (wrong password?)");
-            if (ok) {
-                User updated = UserDAO.getByPhone(np);
-                if (updated != null) {
-                    auth.setName(updated.getName());
-                    auth.setSurname(updated.getSurname());
-                    auth.setPhonenum(updated.getPhonenum());
-                    auth.setIBAN(updated.getIBAN());
+            User current = UserDAO.getByPhone(auth.getPhonenum());
+            if (current == null) {
+                System.out.println("Current user not found");
+            } else {
+                System.out.println("What do you want to edit? 1=First name 2=Last name 3=Phone 4=IBAN 5=Back");
+                System.out.print("\n> ");
+                String choice = scanner.nextLine().trim();
+                String nf = current.getName();
+                String nl = current.getSurname();
+                String np = current.getPhonenum();
+                String ni = current.getIBAN();
+                boolean doUpdate = false;
+                switch (choice) {
+                    case "1":
+                        System.out.print("New first name: ");
+                        nf = scanner.nextLine().trim();
+                        doUpdate = true;
+                        break;
+                    case "2":
+                        System.out.print("New last name: ");
+                        nl = scanner.nextLine().trim();
+                        doUpdate = true;
+                        break;
+                    case "3":
+                        System.out.print("New phone: ");
+                        np = scanner.nextLine().trim();
+                        doUpdate = true;
+                        break;
+                    case "4":
+                        System.out.print("New IBAN: ");
+                        ni = scanner.nextLine().trim();
+                        doUpdate = true;
+                        break;
+                    default:
+                        // back or unknown
+                        break;
+                }
+                if (doUpdate) {
+                    boolean ok = UserDAO.updateProfile(auth.getPhonenum(), oldp, nf, nl, np, ni);
+                    System.out.println(ok ? "Profile updated" : "Profile update failed (wrong password?)");
+                    if (ok) {
+                        User updated = UserDAO.getByPhone(np);
+                        if (updated != null) {
+                            auth.setName(updated.getName());
+                            auth.setSurname(updated.getSurname());
+                            auth.setPhonenum(updated.getPhonenum());
+                            auth.setIBAN(updated.getIBAN());
+                        }
+                    }
                 }
             }
         } else if (a.equals("3")) {

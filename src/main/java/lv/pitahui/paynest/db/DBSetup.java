@@ -30,8 +30,10 @@ public class DBSetup {
                 Nosaukums TEXT(200),
                 Veids TEXT(100),
                 Cena REAL(10, 2),
-                Ilgums integer,
-                Aktivizacijas_datums Date
+                Ilgums TEXT(20),
+                Lietotaja_ID INTEGER,
+                Aktivizacijas_datums Date,
+                FOREIGN KEY (Lietotaja_ID) REFERENCES Lietotajs(Lietotaja_ID)
             );
 
             CREATE TABLE Maksajums (
@@ -55,6 +57,22 @@ public class DBSetup {
                 FOREIGN KEY (Lietotaja_ID) REFERENCES Lietotajs(Lietotaja_ID),
                 FOREIGN KEY (Abonementa_ID) REFERENCES Abonements(Abonementa_ID)
             );
+
+            -- sample user (owner for subscriptions)
+            INSERT INTO Lietotajs (Vards, Uzvards, Talrunis, IBAN, Password) VALUES ('Admin', 'User', '+37100000001', 'LV00TEST000000000000', 'adminpw');
+
+            -- sample subscriptions (owned by the sample user id=1)
+            INSERT INTO Abonements (Nosaukums, Veids, Cena, Ilgums, Aktivizacijas_datums) VALUES ('Spotify', 'Basic monthly', 5.99, 'Monthly', date('now'));
+            INSERT INTO Abonements (Nosaukums, Veids, Cena, Ilgums, Lietotaja_ID, Aktivizacijas_datums) VALUES ('Spotify', 'Basic monthly', 5.99, 'Monthly', 1, date('now'));
+            INSERT INTO Abonements (Nosaukums, Veids, Cena, Ilgums, Lietotaja_ID, Aktivizacijas_datums) VALUES ('Kling.ai', 'Standard monthly', 9.99, 'Monthly', 1, date('now'));
+            INSERT INTO Abonements (Nosaukums, Veids, Cena, Ilgums, Lietotaja_ID, Aktivizacijas_datums) VALUES ('Kling.ai', 'Premium monthly', 14.99, 'Monthly', 1, date('now'));
+            INSERT INTO Abonements (Nosaukums, Veids, Cena, Ilgums, Lietotaja_ID, Aktivizacijas_datums) VALUES ('Spotify', 'Basic annual', 59.99, 'Annual', 1, date('now'));
+            INSERT INTO Abonements (Nosaukums, Veids, Cena, Ilgums, Lietotaja_ID, Aktivizacijas_datums) VALUES ('Youtube', 'Student plan', 3.99, 'Monthly', 1, date('now'));
+            INSERT INTO Abonements (Nosaukums, Veids, Cena, Ilgums, Lietotaja_ID, Aktivizacijas_datums) VALUES ('Youtube', 'Family plan', 19.99, 'Monthly', 1, date('now'));
+            INSERT INTO Abonements (Nosaukums, Veids, Cena, Ilgums, Lietotaja_ID, Aktivizacijas_datums) VALUES ('Telegram', 'Pro annual', 199.99, 'Annual', 1, date('now'));
+            INSERT INTO Abonements (Nosaukums, Veids, Cena, Ilgums, Lietotaja_ID, Aktivizacijas_datums) VALUES ('Telegram', 'Trial 7 days', 0.00, 'Trial', 1, date('now'));
+            INSERT INTO Abonements (Nosaukums, Veids, Cena, Ilgums, Lietotaja_ID, Aktivizacijas_datums) VALUES ('Netflix', 'Monthly saver', 7.49, 'Monthly', 1, date('now'));
+            INSERT INTO Abonements (Nosaukums, Veids, Cena, Ilgums, Lietotaja_ID, Aktivizacijas_datums) VALUES ('Netflix', 'Enterprise', 999.99, 'Annual', 1, date('now'));
             """;
 
         try (Connection conn = DBConnection.getConnection();
