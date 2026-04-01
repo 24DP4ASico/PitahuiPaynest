@@ -125,7 +125,7 @@ public class Main {
 
     private static void subscriptionsMenu(User auth, Scanner scanner) throws SQLException {
         printSeparator();
-        System.out.println("Subscriptions: 1=List 2=Create 3=Edit 4=Delete 5=Back");
+        System.out.println("Subscriptions: 1=List 2=Create 3=Edit 4=Delete 5=Filter 6=Back");
         System.out.print("\n> ");
         String s = scanner.nextLine().trim();
         if (s.equals("1")) {
@@ -204,6 +204,40 @@ public class Main {
             int id = Integer.parseInt(scanner.nextLine().trim());
             boolean ok = SubscriptionDAO.deleteById(id);
             System.out.println(ok ? "Deleted" : "Delete failed");
+        } else if (s.equals("5")) {
+            System.out.println("Filter by: 1=Nosaukums(app name) 2=Veids(subscription name) 3=Ilgums(duration) 4=Back");
+            System.out.print("\n> ");
+            String f = scanner.nextLine().trim();
+            if (f.equals("4")) {
+                // back
+            } else {
+                System.out.print("Enter search value: ");
+                String q = scanner.nextLine().trim().toLowerCase();
+                List<Map<String, Object>> list = SubscriptionDAO.listAll();
+                boolean any = false;
+                for (var m : list) {
+                    String fieldVal = "";
+                    switch (f) {
+                        case "1":
+                            fieldVal = m.get("name") != null ? m.get("name").toString() : "";
+                            break;
+                        case "2":
+                            fieldVal = m.get("type") != null ? m.get("type").toString() : "";
+                            break;
+                        case "3":
+                            fieldVal = m.get("duration") != null ? m.get("duration").toString() : "";
+                            break;
+                        default:
+                            fieldVal = "";
+                    }
+                    if (fieldVal.toLowerCase().contains(q)) {
+                        System.out.printf("id=%s, name=%s, type=%s, price=%s, duration=%s\n",
+                                m.get("id"), m.get("name"), m.get("type"), m.get("price"), m.get("duration"));
+                        any = true;
+                    }
+                }
+                if (!any) System.out.println("No matching subscriptions");
+            }
         } else {
             // back
         }
