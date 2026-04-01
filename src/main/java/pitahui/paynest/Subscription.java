@@ -6,14 +6,24 @@ import java.sql.SQLException;
 public class Subscription {
     private String subscriptionName;
     private String subscriptionType;
-    private Integer subscriptionDuration;
+    private String subscriptionDuration;
     private Float subscriptionPrice;
+    private Integer lietotajaId;
 
-    public Subscription(String subscriptionName, String subscriptionType, Integer subscriptionDuration, Float subscriptionPrice) {
+    public Subscription(String subscriptionName, String subscriptionType, String subscriptionDuration, Float subscriptionPrice) {
         this.subscriptionName = subscriptionName;
         this.subscriptionType = subscriptionType;
         this.subscriptionDuration = subscriptionDuration;
         this.subscriptionPrice = subscriptionPrice;
+        this.lietotajaId = null;
+    }
+
+    public Subscription(String subscriptionName, String subscriptionType, String subscriptionDuration, Float subscriptionPrice, Integer lietotajaId) {
+        this.subscriptionName = subscriptionName;
+        this.subscriptionType = subscriptionType;
+        this.subscriptionDuration = subscriptionDuration;
+        this.subscriptionPrice = subscriptionPrice;
+        this.lietotajaId = lietotajaId;
     }
     public void subscriptionName(String subscriptionName){
         this.subscriptionName = subscriptionName;
@@ -21,7 +31,7 @@ public class Subscription {
     public void subscriptionType(String subscriptionType){
         this.subscriptionType = subscriptionType;
     }
-    public void subscriptionDuration(Integer subscriptionDuration){
+    public void subscriptionDuration(String subscriptionDuration){
         this.subscriptionDuration = subscriptionDuration;
     }
 
@@ -37,12 +47,20 @@ public class Subscription {
         return subscriptionType;
     }
 
-    public Integer getSubscriptionDuration() {
+    public String getSubscriptionDuration() {
         return subscriptionDuration;
     }
 
     public Float getSubscriptionPrice() {
         return subscriptionPrice;
+    }
+
+    public Integer getLietotajaId() {
+        return lietotajaId;
+    }
+
+    public void setLietotajaId(Integer lietotajaId) {
+        this.lietotajaId = lietotajaId;
     }
 
     public void save() {

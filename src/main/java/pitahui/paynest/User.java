@@ -3,51 +3,68 @@ package pitahui.paynest;
 import lv.pitahui.paynest.db.UserDAO;
 import java.sql.SQLException;
 
-public class User{
-
-    private String Name;
-    private String Surname;
-    private String Phonenum;
+public class User {
+    private Integer lietotajaId;
+    private String name;
+    private String surname;
+    private String phonenum;
     private String IBAN;
     private String password;
 
     public User(String Name, String Surname, String Phonenum, String IBAN) {
-        this.Name = Name;
-        this.Surname = Surname;
-        this.Phonenum = Phonenum;
+        this.lietotajaId = null;
+        this.name = Name;
+        this.surname = Surname;
+        this.phonenum = Phonenum;
+        this.IBAN = IBAN;
+    }
+
+    public User(Integer lietotajaId, String name, String surname, String phonenum, String IBAN) {
+        this.lietotajaId = lietotajaId;
+        this.name = name;
+        this.surname = surname;
+        this.phonenum = phonenum;
         this.IBAN = IBAN;
     }
 
     public String getName() {
-        return Name;
+        return name;
     }
 
-    public void setName(String Name) {
-        this.Name = Name;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getSurname() {
-        return Surname;
+        return surname;
     }
 
-    public void setSurname(String Surname) {
-        this.Surname = Surname;
+    public void setSurname(String surname) {
+        this.surname = surname;
     }
 
     public String getPhonenum() {
-        return Phonenum;
+        return phonenum;
     }
 
-    public void setPhonenum(String Phonenum) {
-        this.Phonenum = Phonenum;
+    public void setPhonenum(String phonenum) {
+        this.phonenum = phonenum;
     }
 
     public String getIBAN() {
         return IBAN;
     }
-    
+
     public void setIBAN(String IBAN) {
         this.IBAN = IBAN;
+    }
+
+    public Integer getId() {
+        return lietotajaId;
+    }
+
+    public void setId(Integer lietotajaId) {
+        this.lietotajaId = lietotajaId;
     }
 
     public String getPassword() {
@@ -59,20 +76,20 @@ public class User{
     }
 
     public void changeName(String newName) {
-        this.Name = newName;
+        this.name = newName;
     }
 
     public void changeSurname(String newSurname) {
-        this.Surname = newSurname;
+        this.surname = newSurname;
     }
 
     public void changePhonenum(String newPhonenum) {
-        this.Phonenum = newPhonenum;
-    }   
+        this.phonenum = newPhonenum;
+    }
 
     public void changeIBAN(String newIBAN) {
         this.IBAN = newIBAN;
-    } 
+    }
 
     public void save() {
         try {
@@ -84,7 +101,6 @@ public class User{
 
     @Override
     public String toString() {
-        return "User:" + "Name = " + Name + ", Surname = " + Surname + ", Phonenum = " + Phonenum + ", IBAN = " + IBAN;
+        return "User:" + "Name = " + name + ", Surname = " + surname + ", Phonenum = " + phonenum + ", IBAN = " + IBAN;
     }
-
 }

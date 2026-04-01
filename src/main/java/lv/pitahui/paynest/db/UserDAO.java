@@ -33,7 +33,7 @@ public class UserDAO {
 
             try (java.sql.ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    User u = new User(rs.getString("Vards"), rs.getString("Uzvards"), rs.getString("Talrunis"), rs.getString("IBAN"));
+                    User u = new User(rs.getInt("Lietotaja_ID"), rs.getString("Vards"), rs.getString("Uzvards"), rs.getString("Talrunis"), rs.getString("IBAN"));
                     u.setPassword(rs.getString("Password"));
                     return u;
                 }
@@ -79,14 +79,14 @@ public class UserDAO {
     }
 
     public static User getByPhone(String phone) throws SQLException {
-        String sql = "SELECT Vards, Uzvards, Talrunis, IBAN, Password FROM Lietotajs WHERE Talrunis = ?";
+        String sql = "SELECT Lietotaja_ID, Vards, Uzvards, Talrunis, IBAN, Password FROM Lietotajs WHERE Talrunis = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, phone);
             try (java.sql.ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    User u = new User(rs.getString("Vards"), rs.getString("Uzvards"), rs.getString("Talrunis"), rs.getString("IBAN"));
+                    User u = new User(rs.getInt("Lietotaja_ID"), rs.getString("Vards"), rs.getString("Uzvards"), rs.getString("Talrunis"), rs.getString("IBAN"));
                     u.setPassword(rs.getString("Password"));
                     return u;
                 }

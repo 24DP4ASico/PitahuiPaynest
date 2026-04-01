@@ -125,7 +125,7 @@ public class Main {
 
     private static void subscriptionsMenu(User auth, Scanner scanner) throws SQLException {
         printSeparator();
-        System.out.println("Subscriptions: 1=List 2=Create 3=Edit 4=Delete 5=Filter 6=Back");
+        System.out.println("Subscriptions: 1=List 2=Create 3=Edit 4=Delete 5=Filter 6=Find 7=Back");
         System.out.print("\n> ");
         String s = scanner.nextLine().trim();
         if (s.equals("1")) {
@@ -139,11 +139,11 @@ public class Main {
             String name = scanner.nextLine().trim();
             System.out.print("Type: ");
             String type = scanner.nextLine().trim();
-            System.out.print("Duration (days): ");
-            Integer dur = Integer.valueOf(scanner.nextLine().trim());
+            System.out.print("Duration: ");
+            String dur = scanner.nextLine().trim();
             System.out.print("Price (e.g. 12.34): ");
             Float price = Float.valueOf(scanner.nextLine().trim());
-            Subscription sub = new Subscription(name, type, dur, price);
+            Subscription sub = new Subscription(name, type, dur, price, auth.getId());
             sub.save();
             System.out.println("Subscription created: " + sub);
         } else if (s.equals("3")) {
@@ -172,13 +172,9 @@ public class Main {
                         break;
                     case "3":
                         System.out.print("New duration: ");
-                        try {
-                            Integer dur = Integer.valueOf(scanner.nextLine().trim());
-                            current.subscriptionDuration(dur);
-                            changed = true;
-                        } catch (NumberFormatException nfe) {
-                            System.out.println("Invalid duration");
-                        }
+                        String nd = scanner.nextLine().trim();
+                        current.subscriptionDuration(nd);
+                        changed = true;
                         break;
                     case "4":
                         System.out.print("New price: ");
@@ -238,6 +234,24 @@ public class Main {
                 }
                 if (!any) System.out.println("No matching subscriptions");
             }
+        } else if (s.equals("6")) {
+            System.out.print("Enter any value to search (name/type/duration/price/activated): ");
+            String q = scanner.nextLine().trim().toLowerCase();
+            List<Map<String, Object>> list = SubscriptionDAO.listAll();
+            boolean any = false;
+            for (var m : list) {
+                String name = m.get("name") != null ? m.get("name").toString().toLowerCase() : "";
+                String type = m.get("type") != null ? m.get("type").toString().toLowerCase() : "";
+                String price = m.get("price") != null ? m.get("price").toString().toLowerCase() : "";
+                String duration = m.get("duration") != null ? m.get("duration").toString().toLowerCase() : "";
+                String activated = m.get("activated") != null ? m.get("activated").toString().toLowerCase() : "";
+                if (name.contains(q) || type.contains(q) || price.contains(q) || duration.contains(q) || activated.contains(q)) {
+                    System.out.printf("id=%s, name=%s, type=%s, price=%s, duration=%s, activated=%s\n",
+                            m.get("id"), m.get("name"), m.get("type"), m.get("price"), m.get("duration"), m.get("activated"));
+                    any = true;
+                }
+            }
+            if (!any) System.out.println("No matching subscriptions");
         } else {
             // back
         }

@@ -14,7 +14,7 @@ import java.util.Map;
 public class SubscriptionDAO {
 
     public static void insert(Subscription s) throws SQLException {
-        String sql = "INSERT INTO Abonements (Nosaukums, Veids, Cena, Ilgums, Aktivizacijas_datums) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Abonements (Nosaukums, Veids, Cena, Ilgums, Lietotaja_ID, Aktivizacijas_datums) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -27,13 +27,18 @@ public class SubscriptionDAO {
                 pstmt.setNull(3, java.sql.Types.REAL);
             }
             if (s.getSubscriptionDuration() != null) {
-                pstmt.setInt(4, s.getSubscriptionDuration());
+                pstmt.setString(4, s.getSubscriptionDuration());
             } else {
-                pstmt.setNull(4, java.sql.Types.INTEGER);
+                pstmt.setNull(4, java.sql.Types.VARCHAR);
+            }
+            if (s.getLietotajaId() != null) {
+                pstmt.setInt(5, s.getLietotajaId());
+            } else {
+                pstmt.setNull(5, java.sql.Types.INTEGER);
             }
 
             // Use current date as activation date when inserting
-            pstmt.setString(5, LocalDate.now().toString());
+            pstmt.setString(6, LocalDate.now().toString());
 
             pstmt.executeUpdate();
         }
@@ -52,7 +57,7 @@ public class SubscriptionDAO {
                 m.put("name", rs.getString("Nosaukums"));
                 m.put("type", rs.getString("Veids"));
                 m.put("price", rs.getString("Cena"));
-                m.put("duration", rs.getObject("Ilgums"));
+                m.put("duration", rs.getString("Ilgums"));
                 m.put("activated", rs.getString("Aktivizacijas_datums"));
                 out.add(m);
             }
@@ -84,9 +89,9 @@ public class SubscriptionDAO {
                 pstmt.setNull(3, java.sql.Types.REAL);
             }
             if (s.getSubscriptionDuration() != null) {
-                pstmt.setInt(4, s.getSubscriptionDuration());
+                pstmt.setString(4, s.getSubscriptionDuration());
             } else {
-                pstmt.setNull(4, java.sql.Types.INTEGER);
+                pstmt.setNull(4, java.sql.Types.VARCHAR);
             }
             pstmt.setInt(5, id);
 
@@ -96,7 +101,7 @@ public class SubscriptionDAO {
     }
 
     public static pitahui.paynest.Subscription getById(int id) throws SQLException {
-        String sql = "SELECT Nosaukums, Veids, Cena, Ilgums FROM Abonements WHERE Abonementa_ID = ?";
+        String sql = "SELECT Nosaukums, Veids, Cena, Ilgums, Lietotaja_ID FROM Abonements WHERE Abonementa_ID = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
@@ -106,8 +111,9 @@ public class SubscriptionDAO {
                     String name = rs.getString("Nosaukums");
                     String type = rs.getString("Veids");
                     Float price = rs.getObject("Cena") != null ? rs.getFloat("Cena") : null;
-                    Integer duration = rs.getObject("Ilgums") != null ? rs.getInt("Ilgums") : null;
-                    return new pitahui.paynest.Subscription(name, type, duration, price);
+                    String duration = rs.getString("Ilgums");
+                    Integer lietotajaId = rs.getObject("Lietotaja_ID") != null ? rs.getInt("Lietotaja_ID") : null;
+                    return new pitahui.paynest.Subscription(name, type, duration, price, lietotajaId);
                 }
             }
         }
