@@ -312,7 +312,7 @@ public class Main {
         }
 
         Map<String, Object> selectedSub = filteredSubs.get(choice - 1);
-        double price = ((Number) selectedSub.get("price")).doubleValue();
+        double price = Double.parseDouble(selectedSub.get("price").toString());
         Integer subId = ((Number) selectedSub.get("id")).intValue();
 
         // Check balance
