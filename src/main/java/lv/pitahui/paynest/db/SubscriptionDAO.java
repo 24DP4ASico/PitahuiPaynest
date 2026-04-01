@@ -94,4 +94,23 @@ public class SubscriptionDAO {
             return affected > 0;
         }
     }
+
+    public static pitahui.paynest.Subscription getById(int id) throws SQLException {
+        String sql = "SELECT Nosaukums, Veids, Cena, Ilgums FROM Abonements WHERE Abonementa_ID = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, id);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    String name = rs.getString("Nosaukums");
+                    String type = rs.getString("Veids");
+                    Float price = rs.getObject("Cena") != null ? rs.getFloat("Cena") : null;
+                    Integer duration = rs.getObject("Ilgums") != null ? rs.getInt("Ilgums") : null;
+                    return new pitahui.paynest.Subscription(name, type, duration, price);
+                }
+            }
+        }
+        return null;
+    }
 }

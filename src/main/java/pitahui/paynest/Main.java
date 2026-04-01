@@ -149,17 +149,56 @@ public class Main {
         } else if (s.equals("3")) {
             System.out.print("Subscription id to edit: ");
             int id = Integer.parseInt(scanner.nextLine().trim());
-            System.out.print("New name: ");
-            String name = scanner.nextLine().trim();
-            System.out.print("New type: ");
-            String type = scanner.nextLine().trim();
-            System.out.print("New duration: ");
-            Integer dur = Integer.valueOf(scanner.nextLine().trim());
-            System.out.print("New price: ");
-            Float price = Float.valueOf(scanner.nextLine().trim());
-            Subscription sub = new Subscription(name, type, dur, price);
-            boolean ok = SubscriptionDAO.update(id, sub);
-            System.out.println(ok ? "Subscription updated" : "Update failed");
+            Subscription current = SubscriptionDAO.getById(id);
+            if (current == null) {
+                System.out.println("No subscription found with id=" + id);
+            } else {
+                System.out.println("What do you want to edit? 1=Name 2=Type 3=Duration 4=Price 5=Back");
+                System.out.print("\n> ");
+                String f = scanner.nextLine().trim();
+                boolean changed = false;
+                switch (f) {
+                    case "1":
+                        System.out.print("New name: ");
+                        String name = scanner.nextLine().trim();
+                        current.subscriptionName(name);
+                        changed = true;
+                        break;
+                    case "2":
+                        System.out.print("New type: ");
+                        String type = scanner.nextLine().trim();
+                        current.subscriptionType(type);
+                        changed = true;
+                        break;
+                    case "3":
+                        System.out.print("New duration: ");
+                        try {
+                            Integer dur = Integer.valueOf(scanner.nextLine().trim());
+                            current.subscriptionDuration(dur);
+                            changed = true;
+                        } catch (NumberFormatException nfe) {
+                            System.out.println("Invalid duration");
+                        }
+                        break;
+                    case "4":
+                        System.out.print("New price: ");
+                        try {
+                            Float price = Float.valueOf(scanner.nextLine().trim());
+                            current.subscriptionPrice(price);
+                            changed = true;
+                        } catch (NumberFormatException nfe) {
+                            System.out.println("Invalid price");
+                        }
+                        break;
+                    default:
+                        // back or unknown
+                        break;
+                }
+                if (changed) {
+                    boolean ok = SubscriptionDAO.update(id, current);
+                    System.out.println(ok ? "Subscription updated" : "Update failed");
+                }
+            }
         } else if (s.equals("4")) {
             System.out.print("Subscription id to delete: ");
             int id = Integer.parseInt(scanner.nextLine().trim());
