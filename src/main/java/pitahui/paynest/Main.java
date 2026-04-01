@@ -122,7 +122,8 @@ public class Main {
             System.out.println(" 1) Subscriptions");
             System.out.println(" 2) Account settings");
             System.out.println(" 3) Pay for subscription");
-            System.out.println(" 4) Logout");
+            System.out.println(" 4) Payment history");
+            System.out.println(" 5) Logout");
             System.out.print("\n> ");
             String c = scanner.nextLine().trim();
             if (c.equals("1")) {
@@ -132,6 +133,8 @@ public class Main {
             } else if (c.equals("3")) {
                 paymentFlow(auth, scanner);
             } else if (c.equals("4")) {
+                paymentHistoryMenu(auth, scanner);
+            } else if (c.equals("5")) {
                 System.out.println("Logged out");
                 break;
             } else {
@@ -329,6 +332,11 @@ public class Main {
 
         if (account.getBilance() < price) {
             System.out.println("ERROR: Insufficient balance. Payment cancelled.");
+            try {
+                PaymentDAO.recordPayment(subId, auth.getId(), price, "FAILED - Insufficient balance");
+            } catch (SQLException e) {
+                System.out.println("Error recording failed payment: " + e.getMessage());
+            }
             return;
         }
 
@@ -339,6 +347,11 @@ public class Main {
 
         if (verified == null) {
             System.out.println("ERROR: Wrong password. Payment cancelled.");
+            try {
+                PaymentDAO.recordPayment(subId, auth.getId(), price, "FAILED - Wrong password");
+            } catch (SQLException e) {
+                System.out.println("Error recording failed payment: " + e.getMessage());
+            }
             return;
         }
 
@@ -357,6 +370,27 @@ public class Main {
             }
         } catch (SQLException e) {
             System.out.println("ERROR: " + e.getMessage());
+        }
+    }
+
+    private static void paymentHistoryMenu(User auth, Scanner scanner) throws SQLException {
+        printSeparator();
+        System.out.println("Payment History\n");
+
+        List<Map<String, Object>> payments = PaymentDAO.getPaymentHistoryByUserId(auth.getId());
+
+        if (payments.isEmpty()) {
+            System.out.println("You have no payment history.");
+            return;
+        }
+
+        System.out.println("Your payments:\n");
+        for (Map<String, Object> p : payments) {
+            System.out.printf("Subscription: %s | Amount: %.2f EUR | Date: %s | Status: %s\n",
+                    p.get("subscriptionName"),
+                    ((Number) p.get("amount")).doubleValue(),
+                    p.get("dateTime"),
+                    p.get("status"));
         }
     }
 

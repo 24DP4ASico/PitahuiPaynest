@@ -2,9 +2,14 @@ package lv.pitahui.paynest.db;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class PaymentDAO {
 
@@ -26,5 +31,34 @@ public class PaymentDAO {
             int affected = pstmt.executeUpdate();
             return affected > 0;
         }
+    }
+
+    public static List<Map<String, Object>> getPaymentHistoryByUserId(Integer userId) throws SQLException {
+        String sql = """
+                SELECT m.Maksajuma_ID, m.Abonementa_ID, a.Nosaukums, m.Summa, m.Datums_un_Laiks, m.Statuss
+                FROM Maksajums m
+                JOIN Abonements a ON m.Abonementa_ID = a.Abonementa_ID
+                WHERE m.Lietotaja_ID = ?
+                ORDER BY m.Datums_un_Laiks DESC
+                """;
+        List<Map<String, Object>> payments = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, userId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> payment = new HashMap<>();
+                    payment.put("id", rs.getInt("Maksajuma_ID"));
+                    payment.put("subscriptionId", rs.getInt("Abonementa_ID"));
+                    payment.put("subscriptionName", rs.getString("Nosaukums"));
+                    payment.put("amount", rs.getDouble("Summa"));
+                    payment.put("dateTime", rs.getString("Datums_un_Laiks"));
+                    payment.put("status", rs.getString("Statuss"));
+                    payments.add(payment);
+                }
+            }
+        }
+        return payments;
     }
 }
