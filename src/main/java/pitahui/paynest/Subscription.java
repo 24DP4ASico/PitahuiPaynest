@@ -7,10 +7,10 @@ public class Subscription {
     private String subscriptionName;
     private String subscriptionType;
     private String subscriptionDuration;
-    private Float subscriptionPrice;
+    private double subscriptionPrice;
     private Integer lietotajaId;
 
-    public Subscription(String subscriptionName, String subscriptionType, String subscriptionDuration, Float subscriptionPrice) {
+    public Subscription(String subscriptionName, String subscriptionType, String subscriptionDuration, double subscriptionPrice) {
         this.subscriptionName = subscriptionName;
         this.subscriptionType = subscriptionType;
         this.subscriptionDuration = subscriptionDuration;
@@ -18,7 +18,7 @@ public class Subscription {
         this.lietotajaId = null;
     }
 
-    public Subscription(String subscriptionName, String subscriptionType, String subscriptionDuration, Float subscriptionPrice, Integer lietotajaId) {
+    public Subscription(String subscriptionName, String subscriptionType, String subscriptionDuration, double subscriptionPrice, Integer lietotajaId) {
         this.subscriptionName = subscriptionName;
         this.subscriptionType = subscriptionType;
         this.subscriptionDuration = subscriptionDuration;
@@ -35,7 +35,7 @@ public class Subscription {
         this.subscriptionDuration = subscriptionDuration;
     }
 
-    public void subscriptionPrice(Float subscriptionPrice){
+    public void subscriptionPrice(double subscriptionPrice){
         this.subscriptionPrice = subscriptionPrice;
     }
 
@@ -51,7 +51,7 @@ public class Subscription {
         return subscriptionDuration;
     }
 
-    public Float getSubscriptionPrice() {
+    public double getSubscriptionPrice() {
         return subscriptionPrice;
     }
 

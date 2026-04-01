@@ -13,6 +13,7 @@ public class DBSetup {
             Drop table if exists Abonements;
             Drop table if exists Maksajums;
             Drop table if exists Pazinojums;
+            Drop table if exists Bankas_konts;
 
             PRAGMA foreign_keys = ON;
 
@@ -58,8 +59,18 @@ public class DBSetup {
                 FOREIGN KEY (Abonementa_ID) REFERENCES Abonements(Abonementa_ID)
             );
 
+            CREATE TABLE Bankas_konts (
+                Bankas_konts_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                Lietotaja_ID INTEGER UNIQUE,
+                Bilance REAL(10, 2),
+                FOREIGN KEY (Lietotaja_ID) REFERENCES Lietotajs(Lietotaja_ID)
+            );
+
             -- sample user (owner for subscriptions)
             INSERT INTO Lietotajs (Vards, Uzvards, Talrunis, IBAN, Password) VALUES ('Admin', 'User', '+37100000001', 'LV00TEST000000000000', 'adminpw');
+
+            -- sample bank account for admin user
+            INSERT INTO Bankas_konts (Lietotaja_ID, Bilance) VALUES (1, 500.00);
 
             -- sample subscriptions (owned by the sample user id=1)
             INSERT INTO Abonements (Nosaukums, Veids, Cena, Ilgums, Aktivizacijas_datums) VALUES ('Spotify', 'Basic monthly', 5.99, 'Monthly', date('now'));

@@ -21,11 +21,7 @@ public class SubscriptionDAO {
 
             pstmt.setString(1, s.getSubscriptionName());
             pstmt.setString(2, s.getSubscriptionType());
-            if (s.getSubscriptionPrice() != null) {
-                pstmt.setFloat(3, s.getSubscriptionPrice());
-            } else {
-                pstmt.setNull(3, java.sql.Types.REAL);
-            }
+            pstmt.setDouble(3, s.getSubscriptionPrice());
             if (s.getSubscriptionDuration() != null) {
                 pstmt.setString(4, s.getSubscriptionDuration());
             } else {
@@ -45,7 +41,7 @@ public class SubscriptionDAO {
     }
 
     public static List<Map<String,Object>> listAll() throws SQLException {
-        String sql = "SELECT Abonementa_ID, Nosaukums, Veids, Cena, Ilgums, Aktivizacijas_datums FROM Abonements";
+        String sql = "SELECT Abonementa_ID, Nosaukums, Veids, Cena, Ilgums, Aktivizacijas_datums, Lietotaja_ID FROM Abonements";
         List<Map<String,Object>> out = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -59,6 +55,7 @@ public class SubscriptionDAO {
                 m.put("price", rs.getString("Cena"));
                 m.put("duration", rs.getString("Ilgums"));
                 m.put("activated", rs.getString("Aktivizacijas_datums"));
+                m.put("lietotaja_id", rs.getObject("Lietotaja_ID"));
                 out.add(m);
             }
         }
@@ -83,11 +80,7 @@ public class SubscriptionDAO {
 
             pstmt.setString(1, s.getSubscriptionName());
             pstmt.setString(2, s.getSubscriptionType());
-            if (s.getSubscriptionPrice() != null) {
-                pstmt.setFloat(3, s.getSubscriptionPrice());
-            } else {
-                pstmt.setNull(3, java.sql.Types.REAL);
-            }
+            pstmt.setDouble(3, s.getSubscriptionPrice());
             if (s.getSubscriptionDuration() != null) {
                 pstmt.setString(4, s.getSubscriptionDuration());
             } else {

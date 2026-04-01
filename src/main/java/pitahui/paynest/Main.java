@@ -3,6 +3,8 @@ package pitahui.paynest;
 import lv.pitahui.paynest.db.DBConnection;
 import lv.pitahui.paynest.db.UserDAO;
 import lv.pitahui.paynest.db.SubscriptionDAO;
+import lv.pitahui.paynest.db.BankAccountDAO;
+import lv.pitahui.paynest.db.PaymentDAO;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -60,10 +62,22 @@ public class Main {
         System.out.print(" Password  : ");
         String pwd = scanner.nextLine();
 
-        User u = new User(fn, ln, phone, iban);
-        u.setPassword(pwd);
-        u.save();
-        System.out.println("\nAccount created for " + fn + " " + ln);
+        try {
+            User u = new User(fn, ln, phone, iban);
+            u.setPassword(pwd);
+            u.save();
+            
+            // Get the newly created user's ID
+            User created = UserDAO.authenticate(phone, pwd);
+            if (created != null) {
+                // Create bank account for new user with initial balance of 100 EUR
+                BankAccountDAO.createAccount(created.getId(), 100.0);
+                System.out.println("\nAccount created for " + fn + " " + ln);
+                System.out.println("Initial bank account balance: 100.00 EUR");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error creating account: " + e.getMessage());
+        }
     }
 
     private static void loginFlow(Scanner scanner) {
@@ -107,7 +121,8 @@ public class Main {
             System.out.println("User menu\n");
             System.out.println(" 1) Subscriptions");
             System.out.println(" 2) Account settings");
-            System.out.println(" 3) Logout");
+            System.out.println(" 3) Pay for subscription");
+            System.out.println(" 4) Logout");
             System.out.print("\n> ");
             String c = scanner.nextLine().trim();
             if (c.equals("1")) {
@@ -115,6 +130,8 @@ public class Main {
             } else if (c.equals("2")) {
                 accountSettingsMenu(auth, scanner);
             } else if (c.equals("3")) {
+                paymentFlow(auth, scanner);
+            } else if (c.equals("4")) {
                 System.out.println("Logged out");
                 break;
             } else {
@@ -254,6 +271,92 @@ public class Main {
             if (!any) System.out.println("No matching subscriptions");
         } else {
             // back
+        }
+    }
+
+    private static void paymentFlow(User auth, Scanner scanner) throws SQLException {
+        printSeparator();
+        System.out.println("Pay for subscription\n");
+
+        // Show only user's own subscriptions
+        List<Map<String, Object>> userSubs = SubscriptionDAO.listAll();
+        List<Map<String, Object>> filteredSubs = userSubs.stream()
+                .filter(m -> auth.getId().equals(m.get("lietotaja_id")))
+                .toList();
+
+        if (filteredSubs.isEmpty()) {
+            System.out.println("You have no subscriptions to pay for.");
+            return;
+        }
+
+        System.out.println("Your subscriptions:");
+        for (int i = 0; i < filteredSubs.size(); i++) {
+            var m = filteredSubs.get(i);
+            double priceValue = ((Number) Double.parseDouble(m.get("price").toString())).doubleValue();
+            System.out.printf("%d) Name=%s, Type=%s, Price=%.2f EUR, Duration=%s\n",
+                    i + 1, m.get("name"), m.get("type"), priceValue, m.get("duration"));
+        }
+
+        System.out.print("\nSelect subscription number to pay (or 0 to cancel): ");
+        int choice = 0;
+        try {
+            choice = Integer.parseInt(scanner.nextLine().trim());
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input");
+            return;
+        }
+
+        if (choice == 0 || choice < 1 || choice > filteredSubs.size()) {
+            System.out.println("Payment cancelled");
+            return;
+        }
+
+        Map<String, Object> selectedSub = filteredSubs.get(choice - 1);
+        double price = ((Number) selectedSub.get("price")).doubleValue();
+        Integer subId = ((Number) selectedSub.get("id")).intValue();
+
+        // Check balance
+        BankAccount account = BankAccountDAO.getByUserId(auth.getId());
+        if (account == null) {
+            System.out.println("Error: Bank account not found.");
+            return;
+        }
+
+        System.out.printf("\nPayment details:\n");
+        System.out.printf("Subscription: %s\n", selectedSub.get("name"));
+        System.out.printf("Amount: %.2f EUR\n", price);
+        System.out.printf("Your balance: %.2f EUR\n", account.getBilance());
+
+        if (account.getBilance() < price) {
+            System.out.println("ERROR: Insufficient balance. Payment cancelled.");
+            return;
+        }
+
+        // Confirm with password
+        System.out.print("\nEnter your password to confirm payment: ");
+        String pwd = scanner.nextLine();
+        User verified = UserDAO.authenticate(auth.getPhonenum(), pwd);
+
+        if (verified == null) {
+            System.out.println("ERROR: Wrong password. Payment cancelled.");
+            return;
+        }
+
+        // Process payment
+        try {
+            double newBalance = account.getBilance() - price;
+            boolean balanceUpdated = BankAccountDAO.updateBalance(auth.getId(), newBalance);
+            boolean paymentRecorded = PaymentDAO.recordPayment(subId, auth.getId(), price, "SUCCESS");
+
+            if (balanceUpdated && paymentRecorded) {
+                System.out.println("\n✓ Payment successful!");
+                System.out.printf("Amount paid: %.2f EUR\n", price);
+                System.out.printf("New balance: %.2f EUR\n", newBalance);
+            } else {
+                System.out.println("\nERROR: Payment processing failed. Please try again.");
+            }
+        } catch (SQLException e) {
+            System.out.println("ERROR: " + e.getMessage());
         }
     }
 
