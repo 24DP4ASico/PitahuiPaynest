@@ -6,11 +6,11 @@ import java.sql.SQLException;
 public class Subscription {
     private String subscriptionName;
     private String subscriptionType;
-    private String subscriptionDuration;
+    private Integer subscriptionDuration;
     private double subscriptionPrice;
     private Integer lietotajaId;
 
-    public Subscription(String subscriptionName, String subscriptionType, String subscriptionDuration, double subscriptionPrice) {
+    public Subscription(String subscriptionName, String subscriptionType, Integer subscriptionDuration, double subscriptionPrice) {
         this.subscriptionName = subscriptionName;
         this.subscriptionType = subscriptionType;
         this.subscriptionDuration = subscriptionDuration;
@@ -18,7 +18,7 @@ public class Subscription {
         this.lietotajaId = null;
     }
 
-    public Subscription(String subscriptionName, String subscriptionType, String subscriptionDuration, double subscriptionPrice, Integer lietotajaId) {
+    public Subscription(String subscriptionName, String subscriptionType, Integer subscriptionDuration, double subscriptionPrice, Integer lietotajaId) {
         this.subscriptionName = subscriptionName;
         this.subscriptionType = subscriptionType;
         this.subscriptionDuration = subscriptionDuration;
@@ -31,7 +31,7 @@ public class Subscription {
     public void subscriptionType(String subscriptionType){
         this.subscriptionType = subscriptionType;
     }
-    public void subscriptionDuration(String subscriptionDuration){
+    public void subscriptionDuration(Integer subscriptionDuration){
         this.subscriptionDuration = subscriptionDuration;
     }
 
@@ -47,7 +47,7 @@ public class Subscription {
         return subscriptionType;
     }
 
-    public String getSubscriptionDuration() {
+    public Integer getSubscriptionDuration() {
         return subscriptionDuration;
     }
 
