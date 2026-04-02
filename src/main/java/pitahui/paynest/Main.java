@@ -412,7 +412,25 @@ public class Main {
                 System.out.printf("New balance: %.2f EUR\n", newBalance);
                 try {
                     // set subscription activation date to today
-                    SubscriptionDAO.updateActivationDate(subId, LocalDate.now().toString());
+                    boolean updated = SubscriptionDAO.updateActivationDate(subId, LocalDate.now().toString());
+                    if (updated) {
+                        try {
+                            // remove stale notifications for this subscription
+                            lv.pitahui.paynest.db.NotificationDAO.deleteByAbonementId(subId);
+                        } catch (SQLException ignore) {
+                            // non-fatal: continue to attempt to create fresh notification
+                        }
+
+                        try {
+                            // recreate an up-to-date notification based on new activation date
+                            Object durObj = selectedSub.get("duration");
+                            Integer durationDays = durObj instanceof Number ? ((Number) durObj).intValue() : null;
+                            lv.pitahui.paynest.db.NotificationDAO.createSubscriptionNotification(
+                                    auth.getId(), subId, selectedSub.get("name").toString(), durationDays, LocalDate.now().toString());
+                        } catch (SQLException ignore) {
+                            // ignore creation failure (non-fatal)
+                        }
+                    }
                 } catch (SQLException e) {
                     System.out.println("Warning: failed to update subscription activation date: " + e.getMessage());
                 }

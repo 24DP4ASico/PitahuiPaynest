@@ -61,7 +61,7 @@ public class NotificationDAO {
 
     public static Integer calculateDaysUntilExpiry(Integer durationDays, String activationDate) {
         if (durationDays == null || activationDate == null) {
-            return 0;
+            return null;
         }
 
         try {
@@ -71,10 +71,11 @@ public class NotificationDAO {
 
             long daysUntilExpiry = durationDays - daysSinceActivation;
 
-            return (int) Math.max(0, daysUntilExpiry);
+            // return signed number: negative => already expired, 0 => expires today
+            return (int) daysUntilExpiry;
         } catch (Exception e) {
             System.err.println("Error calculating days until expiry: " + e.getMessage());
-            return 0;
+            return null;
         }
     }
 
@@ -89,11 +90,23 @@ public class NotificationDAO {
 
         if (daysUntilExpiry == null) daysUntilExpiry = 0;
 
-        // Create notification text
-        String notificationText = String.format(
-                "Your subscription '%s' is going to end today — consider renewing.",
-                subscriptionName
-        );
+        // Create notification text depending on how soon it will expire
+        String notificationText;
+        if (daysUntilExpiry < 0) {
+            int daysAgo = -daysUntilExpiry;
+            notificationText = String.format("Your subscription '%s' ended %d day%s ago.", subscriptionName, daysAgo, daysAgo == 1 ? "" : "s");
+        } else if (daysUntilExpiry == 0) {
+            notificationText = String.format("Your subscription '%s' ends today — consider renewing.", subscriptionName);
+        } else if (daysUntilExpiry == 1) {
+            notificationText = String.format("Your subscription '%s' ends tomorrow — plan to renew if needed.", subscriptionName);
+        } else {
+            notificationText = String.format("Your subscription '%s' is going to end in %d days.", subscriptionName, daysUntilExpiry);
+        }
+
+        // Avoid duplicate notifications: check if one already exists for same user+subscription+days
+        if (existsNotification(lietotajaId, abonementaId, daysUntilExpiry)) {
+            return false;
+        }
 
         // Create notification object
         Notification notification = new Notification(
@@ -106,6 +119,26 @@ public class NotificationDAO {
 
         // Insert into database
         return insert(notification);
+    }
+
+    /**
+     * Checks whether a similar notification already exists for the given user, subscription and days-until-expiry.
+     */
+    private static boolean existsNotification(Integer lietotajaId, Integer abonementaId, Integer daysUntilExpiry) throws SQLException {
+        String sql = "SELECT COUNT(1) as cnt FROM Pazinojums WHERE Lietotaja_ID = ? AND Abonementa_ID = ? AND Dienas_lidz_terminam = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, lietotajaId);
+            pstmt.setInt(2, abonementaId);
+            pstmt.setInt(3, daysUntilExpiry);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    int cnt = rs.getInt("cnt");
+                    return cnt > 0;
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -125,7 +158,7 @@ public class NotificationDAO {
                 if (durationDays == null || activation == null || subId == null || userId == null) continue;
 
                 Integer daysUntilExpiry = calculateDaysUntilExpiry(durationDays, activation);
-                if (daysUntilExpiry != null && daysUntilExpiry == 0) {
+                if (daysUntilExpiry != null && (daysUntilExpiry <= 0 || daysUntilExpiry == 1)) {
                     // Create notification if not already present (simple insert)
                     createSubscriptionNotification(userId, subId, name, durationDays, activation);
                 }
@@ -169,6 +202,19 @@ public class NotificationDAO {
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, notificationId);
+            int affected = pstmt.executeUpdate();
+            return affected > 0;
+        }
+    }
+
+    /**
+     * Deletes all notifications associated with a given subscription (Abonementa_ID).
+     */
+    public static boolean deleteByAbonementId(Integer abonementaId) throws SQLException {
+        String sql = "DELETE FROM Pazinojums WHERE Abonementa_ID = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, abonementaId);
             int affected = pstmt.executeUpdate();
             return affected > 0;
         }
