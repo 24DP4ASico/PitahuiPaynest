@@ -12,6 +12,7 @@ import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Main {
     public static void main(String[] args) {
@@ -70,10 +71,11 @@ public class Main {
             // Get the newly created user's ID
             User created = UserDAO.authenticate(phone, pwd);
             if (created != null) {
-                // Create bank account for new user with initial balance of 100 EUR
-                BankAccountDAO.createAccount(created.getId(), 100.0);
+                // Create bank account for new user with random initial balance between 100 and 3000
+                int randomInitial = ThreadLocalRandom.current().nextInt(100, 3001);
+                BankAccountDAO.createAccount(created.getId(), (double) randomInitial);
                 System.out.println("\nAccount created for " + fn + " " + ln);
-                System.out.println("Initial bank account balance: 100.00 EUR");
+                System.out.printf("Initial bank account balance: %.2f EUR\n", (double) randomInitial);
             }
         } catch (SQLException e) {
             System.out.println("Error creating account: " + e.getMessage());
@@ -159,8 +161,14 @@ public class Main {
             String name = scanner.nextLine().trim();
             System.out.print("Type: ");
             String type = scanner.nextLine().trim();
-            System.out.print("Duration: ");
-            String dur = scanner.nextLine().trim();
+            System.out.print("Duration (integer days): ");
+            Integer dur = null;
+            try {
+                dur = Integer.valueOf(scanner.nextLine().trim());
+            } catch (NumberFormatException nfe) {
+                System.out.println("Invalid duration — please enter an integer value.");
+                return;
+            }
             System.out.print("Price (e.g. 12.34): ");
             Float price = Float.valueOf(scanner.nextLine().trim());
             Subscription sub = new Subscription(name, type, dur, price, auth.getId());
@@ -191,10 +199,14 @@ public class Main {
                         changed = true;
                         break;
                     case "3":
-                        System.out.print("New duration: ");
-                        String nd = scanner.nextLine().trim();
-                        current.subscriptionDuration(nd);
-                        changed = true;
+                        System.out.print("New duration (integer days): ");
+                        try {
+                            Integer nd = Integer.valueOf(scanner.nextLine().trim());
+                            current.subscriptionDuration(nd);
+                            changed = true;
+                        } catch (NumberFormatException nfe) {
+                            System.out.println("Invalid duration — must be an integer.");
+                        }
                         break;
                     case "4":
                         System.out.print("New price: ");

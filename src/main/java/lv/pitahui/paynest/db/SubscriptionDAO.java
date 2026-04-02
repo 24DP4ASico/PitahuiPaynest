@@ -23,9 +23,9 @@ public class SubscriptionDAO {
             pstmt.setString(2, s.getSubscriptionType());
             pstmt.setDouble(3, s.getSubscriptionPrice());
             if (s.getSubscriptionDuration() != null) {
-                pstmt.setString(4, s.getSubscriptionDuration());
+                pstmt.setInt(4, s.getSubscriptionDuration());
             } else {
-                pstmt.setNull(4, java.sql.Types.VARCHAR);
+                pstmt.setNull(4, java.sql.Types.INTEGER);
             }
             if (s.getLietotajaId() != null) {
                 pstmt.setInt(5, s.getLietotajaId());
@@ -53,7 +53,7 @@ public class SubscriptionDAO {
                 m.put("name", rs.getString("Nosaukums"));
                 m.put("type", rs.getString("Veids"));
                 m.put("price", rs.getString("Cena"));
-                m.put("duration", rs.getString("Ilgums"));
+                m.put("duration", rs.getObject("Ilgums"));
                 m.put("activated", rs.getString("Aktivizacijas_datums"));
                 m.put("lietotaja_id", rs.getObject("Lietotaja_ID"));
                 out.add(m);
@@ -82,9 +82,9 @@ public class SubscriptionDAO {
             pstmt.setString(2, s.getSubscriptionType());
             pstmt.setDouble(3, s.getSubscriptionPrice());
             if (s.getSubscriptionDuration() != null) {
-                pstmt.setString(4, s.getSubscriptionDuration());
+                pstmt.setInt(4, s.getSubscriptionDuration());
             } else {
-                pstmt.setNull(4, java.sql.Types.VARCHAR);
+                pstmt.setNull(4, java.sql.Types.INTEGER);
             }
             pstmt.setInt(5, id);
 
@@ -103,10 +103,10 @@ public class SubscriptionDAO {
                 if (rs.next()) {
                     String name = rs.getString("Nosaukums");
                     String type = rs.getString("Veids");
-                    Float price = rs.getObject("Cena") != null ? rs.getFloat("Cena") : null;
-                    String duration = rs.getString("Ilgums");
+                    Double price = rs.getObject("Cena") != null ? rs.getDouble("Cena") : null;
+                    Integer duration = rs.getObject("Ilgums") != null ? rs.getInt("Ilgums") : null;
                     Integer lietotajaId = rs.getObject("Lietotaja_ID") != null ? rs.getInt("Lietotaja_ID") : null;
-                    return new pitahui.paynest.Subscription(name, type, duration, price, lietotajaId);
+                    return new pitahui.paynest.Subscription(name, type, duration, price != null ? price : 0.0, lietotajaId);
                 }
             }
         }
