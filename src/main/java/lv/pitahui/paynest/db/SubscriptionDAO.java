@@ -112,4 +112,15 @@ public class SubscriptionDAO {
         }
         return null;
     }
+
+    public static boolean updateActivationDate(int id, String activationDate) throws SQLException {
+        String sql = "UPDATE Abonements SET Aktivizacijas_datums = ? WHERE Abonementa_ID = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, activationDate);
+            pstmt.setInt(2, id);
+            int affected = pstmt.executeUpdate();
+            return affected > 0;
+        }
+    }
 }

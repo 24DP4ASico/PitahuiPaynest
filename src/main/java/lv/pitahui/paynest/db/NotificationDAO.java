@@ -58,22 +58,9 @@ public class NotificationDAO {
         return notifications;
     }
 
-    /**
-     * Calculates the number of days until subscription ending based on the subscription type
-     * and activation date.
-     *
-     * Duration types:
-     * - "Monthly" = 30 days
-     * - "Annual" = 365 days
-     * - "Trial" = 7 days
-     * - "Permanent" = 100000000000000000000000000000000000000000000000 days (essentially infinite)
-     *
-     * @param durationType The subscription duration type
-     * @param activationDate The subscription activation date (format: "yyyy-MM-dd")
-     * @return Number of days until subscription ending
-     */
-    public static Integer calculateDaysUntilExpiry(String durationType, String activationDate) {
-        if (durationType == null || activationDate == null) {
+
+    public static Integer calculateDaysUntilExpiry(Integer durationDays, String activationDate) {
+        if (durationDays == null || activationDate == null) {
             return 0;
         }
 
@@ -82,10 +69,8 @@ public class NotificationDAO {
             LocalDate today = LocalDate.now();
             long daysSinceActivation = java.time.temporal.ChronoUnit.DAYS.between(activation, today);
 
-            int durationInDays = getDurationInDays(durationType);
-            long daysUntilExpiry = durationInDays - daysSinceActivation;
+            long daysUntilExpiry = durationDays - daysSinceActivation;
 
-            // Return 0 if already expired, otherwise return the calculated days
             return (int) Math.max(0, daysUntilExpiry);
         } catch (Exception e) {
             System.err.println("Error calculating days until expiry: " + e.getMessage());
@@ -94,34 +79,19 @@ public class NotificationDAO {
     }
 
     /**
-     * Converts duration type to days
-     */
-    private static int getDurationInDays(String durationType) {
-        if (durationType == null) {
-            return 0;
-        }
-
-        return switch (durationType.toLowerCase()) {
-            case "monthly" -> 30;
-            case "annual" -> 365;
-            case "trial" -> 7;
-            case "permanent" -> 100_000_000; // Treating permanent as effectively infinite
-            default -> 0;
-        };
-    }
-
-    /**
      * Creates a notification for a subscription with all details filled in
      */
-    public static boolean createSubscriptionNotification(Integer lietotajaId, Integer abonementaId, 
-                                                         String subscriptionName, String durationType, 
+    public static boolean createSubscriptionNotification(Integer lietotajaId, Integer abonementaId,
+                                                         String subscriptionName, Integer durationDays,
                                                          String activationDate) throws SQLException {
         // Calculate days until expiry
-        Integer daysUntilExpiry = calculateDaysUntilExpiry(durationType, activationDate);
+        Integer daysUntilExpiry = calculateDaysUntilExpiry(durationDays, activationDate);
+
+        if (daysUntilExpiry == null) daysUntilExpiry = 0;
 
         // Create notification text
         String notificationText = String.format(
-                "Your subscription '%s' is going to end soon, want to renew it?",
+                "Your subscription '%s' is going to end today — consider renewing.",
                 subscriptionName
         );
 
@@ -136,6 +106,33 @@ public class NotificationDAO {
 
         // Insert into database
         return insert(notification);
+    }
+
+    /**
+     * Scan subscriptions and create notifications for those expiring today.
+     */
+    public static void generateExpiryNotificationsForToday() {
+        try {
+            var subs = SubscriptionDAO.listAll();
+            for (var s : subs) {
+                Object durObj = s.get("duration");
+                Integer durationDays = durObj instanceof Number ? ((Number) durObj).intValue() : null;
+                String activation = s.get("activated") != null ? s.get("activated").toString() : null;
+                Integer userId = s.get("lietotaja_id") instanceof Number ? ((Number) s.get("lietotaja_id")).intValue() : null;
+                Integer subId = s.get("id") instanceof Number ? ((Number) s.get("id")).intValue() : null;
+                String name = s.get("name") != null ? s.get("name").toString() : "";
+
+                if (durationDays == null || activation == null || subId == null || userId == null) continue;
+
+                Integer daysUntilExpiry = calculateDaysUntilExpiry(durationDays, activation);
+                if (daysUntilExpiry != null && daysUntilExpiry == 0) {
+                    // Create notification if not already present (simple insert)
+                    createSubscriptionNotification(userId, subId, name, durationDays, activation);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error generating expiry notifications: " + e.getMessage());
+        }
     }
 
     /**

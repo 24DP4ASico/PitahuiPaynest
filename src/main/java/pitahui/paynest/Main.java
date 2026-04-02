@@ -5,6 +5,8 @@ import lv.pitahui.paynest.db.UserDAO;
 import lv.pitahui.paynest.db.SubscriptionDAO;
 import lv.pitahui.paynest.db.BankAccountDAO;
 import lv.pitahui.paynest.db.PaymentDAO;
+import lv.pitahui.paynest.db.NotificationDAO;
+import java.time.LocalDate;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -20,6 +22,8 @@ public class Main {
         printHeader("Pitahui Paynest - Terminal Interface");
 
         Scanner scanner = new Scanner(System.in);
+        // generate notifications for subscriptions expiring today
+        NotificationDAO.generateExpiryNotificationsForToday();
         try {
             while (true) {
                 printSeparator();
@@ -125,7 +129,8 @@ public class Main {
             System.out.println(" 2) Account settings");
             System.out.println(" 3) Pay for subscription");
             System.out.println(" 4) Payment history");
-            System.out.println(" 5) Logout");
+            System.out.println(" 5) Notifications");
+            System.out.println(" 6) Logout");
             System.out.print("\n> ");
             String c = scanner.nextLine().trim();
             if (c.equals("1")) {
@@ -137,6 +142,34 @@ public class Main {
             } else if (c.equals("4")) {
                 paymentHistoryMenu(auth, scanner);
             } else if (c.equals("5")) {
+                // Notifications
+                printSeparator();
+                System.out.println("Notifications:\n");
+                try {
+                    var notes = lv.pitahui.paynest.db.NotificationDAO.getNotificationsByUserId(auth.getId());
+                    if (notes.isEmpty()) {
+                        System.out.println("No notifications.");
+                    } else {
+                        for (var n : notes) {
+                            System.out.printf("id=%s, text=%s, date=%s, days_until=%s\n",
+                                    n.get("id"), n.get("teksts"), n.get("izveidesDateums"), n.get("dienasLidзTerminam"));
+                        }
+                        System.out.print("Enter notification id to delete or press Enter to go back: ");
+                        String del = scanner.nextLine().trim();
+                        if (!del.isEmpty()) {
+                            try {
+                                int nid = Integer.parseInt(del);
+                                boolean removed = lv.pitahui.paynest.db.NotificationDAO.deleteById(nid);
+                                System.out.println(removed ? "Notification deleted" : "Delete failed");
+                            } catch (NumberFormatException nfe) {
+                                System.out.println("Invalid id");
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    System.out.println("Error retrieving notifications: " + e.getMessage());
+                }
+            } else if (c.equals("6")) {
                 System.out.println("Logged out");
                 break;
             } else {
@@ -377,6 +410,12 @@ public class Main {
                 System.out.println("\n✓ Payment successful!");
                 System.out.printf("Amount paid: %.2f EUR\n", price);
                 System.out.printf("New balance: %.2f EUR\n", newBalance);
+                try {
+                    // set subscription activation date to today
+                    SubscriptionDAO.updateActivationDate(subId, LocalDate.now().toString());
+                } catch (SQLException e) {
+                    System.out.println("Warning: failed to update subscription activation date: " + e.getMessage());
+                }
             } else {
                 System.out.println("\nERROR: Payment processing failed. Please try again.");
             }
