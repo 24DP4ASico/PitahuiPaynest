@@ -194,8 +194,14 @@ public class Main {
                     System.out.println("No saved cards.");
                 } else {
                     for (Card c : cards) {
-                        System.out.printf("id=%d, card=%s, expiry=%s, name=%s\n",
-                                c.getId(), c.getMaskedNumber(), c.getExpiry(), c.getCardholderName());
+                        double bal = 0.0;
+                        try {
+                            var ba = lv.pitahui.paynest.db.BankAccountDAO.getByCardId(c.getId());
+                            if (ba != null) bal = ba.getBilance();
+                        } catch (SQLException ignore) {
+                        }
+                        System.out.printf("id=%d, card=%s, expiry=%s, name=%s, balance=%.2f EUR\n",
+                                c.getId(), c.getMaskedNumber(), c.getExpiry(), c.getCardholderName(), bal);
                     }
                 }
             } else if (a.equals("2")) {

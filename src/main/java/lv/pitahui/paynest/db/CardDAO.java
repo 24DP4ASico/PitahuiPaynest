@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class CardDAO {
 
@@ -23,11 +24,12 @@ public class CardDAO {
             try (ResultSet gk = pstmt.getGeneratedKeys()) {
                 if (gk.next()) {
                     int newId = gk.getInt(1);
-                    // link newly created card to user's bank account (if any)
+                    // create a bank account for this card (test random initial balance)
+                    int randomInitial = ThreadLocalRandom.current().nextInt(100, 3001);
                     try {
-                        BankAccountDAO.linkCardToUser(card.getUserId(), newId);
+                        BankAccountDAO.createAccountWithCard(card.getUserId(), (double) randomInitial, newId);
                     } catch (SQLException ignore) {
-                        // linking failed - still return success for card creation
+                        // ignore; card was created but bank account creation failed
                     }
                     return true;
                 }

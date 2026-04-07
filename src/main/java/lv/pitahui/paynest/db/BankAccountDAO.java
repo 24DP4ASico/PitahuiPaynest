@@ -29,16 +29,41 @@ public class BankAccountDAO {
     }
 
     public static boolean createAccount(Integer userId, double initialBalance) throws SQLException {
+        return createAccountWithCard(userId, initialBalance, null);
+    }
+
+    public static boolean createAccountWithCard(Integer userId, double initialBalance, Integer kartesId) throws SQLException {
         String sql = "INSERT INTO Bankas_konts (Lietotaja_ID, Bilance, Kartes_ID) VALUES (?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, userId);
             pstmt.setDouble(2, initialBalance);
-            pstmt.setNull(3, java.sql.Types.INTEGER);
+            if (kartesId == null) pstmt.setNull(3, java.sql.Types.INTEGER); else pstmt.setInt(3, kartesId);
             int affected = pstmt.executeUpdate();
             return affected > 0;
         }
+    }
+
+    public static BankAccount getByCardId(Integer kartesId) throws SQLException {
+        String sql = "SELECT Bankas_konts_ID, Lietotaja_ID, Bilance, Kartes_ID FROM Bankas_konts WHERE Kartes_ID = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, kartesId);
+            try (java.sql.ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    Integer kId = rs.getObject("Kartes_ID") != null ? rs.getInt("Kartes_ID") : null;
+                    return new BankAccount(
+                            rs.getInt("Bankas_konts_ID"),
+                            rs.getInt("Lietotaja_ID"),
+                            rs.getDouble("Bilance"),
+                            kId
+                    );
+                }
+            }
+        }
+        return null;
     }
 
     public static boolean linkCardToUser(Integer userId, Integer kartesId) throws SQLException {
