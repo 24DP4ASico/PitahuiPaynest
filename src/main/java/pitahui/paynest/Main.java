@@ -14,7 +14,9 @@ import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.List;
+import pitahui.paynest.Card;
+import lv.pitahui.paynest.db.CardDAO;
 
 public class Main {
     public static void main(String[] args) {
@@ -75,11 +77,10 @@ public class Main {
             // Get the newly created user's ID
             User created = UserDAO.authenticate(phone, pwd);
             if (created != null) {
-                // Create bank account for new user with random initial balance between 100 and 3000
-                int randomInitial = ThreadLocalRandom.current().nextInt(100, 3001);
-                BankAccountDAO.createAccount(created.getId(), (double) randomInitial);
+                // Create bank account for new user with zero initial balance
+                BankAccountDAO.createAccount(created.getId(), 0.0);
                 System.out.println("\nAccount created for " + fn + " " + ln);
-                System.out.printf("Initial bank account balance: %.2f EUR\n", (double) randomInitial);
+                System.out.printf("Initial bank account balance: %.2f EUR\n", 0.0);
             }
         } catch (SQLException e) {
             System.out.println("Error creating account: " + e.getMessage());
@@ -125,12 +126,13 @@ public class Main {
         while (true) {
             printSeparator();
             System.out.println("User menu\n");
-            System.out.println(" 1) Subscriptions");
-            System.out.println(" 2) Account settings");
-            System.out.println(" 3) Pay for subscription");
-            System.out.println(" 4) Payment history");
-            System.out.println(" 5) Notifications");
-            System.out.println(" 6) Logout");
+                System.out.println(" 1) Subscriptions");
+                System.out.println(" 2) Account settings");
+                System.out.println(" 3) Pay for subscription");
+                System.out.println(" 4) Payment history");
+                System.out.println(" 5) Notifications");
+                System.out.println(" 6) Manage cards");
+                System.out.println(" 7) Logout");
             System.out.print("\n> ");
             String c = scanner.nextLine().trim();
             if (c.equals("1")) {
@@ -170,10 +172,53 @@ public class Main {
                     System.out.println("Error retrieving notifications: " + e.getMessage());
                 }
             } else if (c.equals("6")) {
+                manageCardsMenu(auth, scanner);
+            } else if (c.equals("7")) {
                 System.out.println("Logged out");
                 break;
             } else {
                 System.out.println("Unknown choice");
+            }
+        }
+    }
+
+    private static void manageCardsMenu(User auth, Scanner scanner) throws SQLException {
+        while (true) {
+            printSeparator();
+            System.out.println("Manage cards: 1=List 2=Add card 3=Delete 4=Back");
+            System.out.print("\n> ");
+            String a = scanner.nextLine().trim();
+            if (a.equals("1")) {
+                List<Card> cards = CardDAO.getByUserId(auth.getId());
+                if (cards.isEmpty()) {
+                    System.out.println("No saved cards.");
+                } else {
+                    for (Card c : cards) {
+                        System.out.printf("id=%d, card=%s, expiry=%s, name=%s\n",
+                                c.getId(), c.getMaskedNumber(), c.getExpiry(), c.getCardholderName());
+                    }
+                }
+            } else if (a.equals("2")) {
+                System.out.print("Card number (digits only): ");
+                String num = scanner.nextLine().trim();
+                System.out.print("Expiry (MM/YY): ");
+                String exp = scanner.nextLine().trim();
+                System.out.print("Cardholder name: ");
+                String name = scanner.nextLine().trim();
+                Card card = new Card(null, auth.getId(), num, exp, name);
+                boolean ok = CardDAO.createCard(card);
+                System.out.println(ok ? "Card saved" : "Failed to save card");
+            } else if (a.equals("3")) {
+                System.out.print("Enter card id to delete: ");
+                try {
+                    int id = Integer.parseInt(scanner.nextLine().trim());
+                    boolean ok = CardDAO.deleteById(id, auth.getId());
+                    System.out.println(ok ? "Card deleted" : "Delete failed");
+                } catch (NumberFormatException nfe) {
+                    System.out.println("Invalid id");
+                }
+            } else {
+                break;
             }
         }
     }
@@ -383,6 +428,28 @@ public class Main {
                 System.out.println("Error recording failed payment: " + e.getMessage());
             }
             return;
+        }
+
+        // Ask whether to use a saved card (if any) — card is informational only, actual debit uses bank account
+        boolean usingCard = false;
+        try {
+            var cards = CardDAO.getByUserId(auth.getId());
+            if (!cards.isEmpty()) {
+                System.out.print("\nUse saved card to pay? (y/N): ");
+                String use = scanner.nextLine().trim().toLowerCase();
+                if (use.equals("y") || use.equals("yes")) {
+                    usingCard = true;
+                    System.out.println("Saved cards:");
+                    for (var c : cards) {
+                        System.out.printf("%d) %s %s %s\n", c.getId(), c.getMaskedNumber(), c.getExpiry(), c.getCardholderName());
+                    }
+                    System.out.print("Select card id to use: ");
+                    String sel = scanner.nextLine().trim();
+                    // selection is informational; not used for authorization here
+                }
+            }
+        } catch (SQLException ignore) {
+            // ignore, proceed without card
         }
 
         // Confirm with password

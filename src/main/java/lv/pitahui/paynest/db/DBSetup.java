@@ -53,11 +53,22 @@ public class DBSetup {
                 FOREIGN KEY (Abonementa_ID) REFERENCES Abonements(Abonementa_ID)
             );
 
+            CREATE TABLE IF NOT EXISTS Kartes (
+                Karte_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                Lietotaja_ID INTEGER,
+                Kartes_numurs TEXT(64),
+                Derigums TEXT(10),
+                Kartes_vards TEXT(120),
+                FOREIGN KEY (Lietotaja_ID) REFERENCES Lietotajs(Lietotaja_ID)
+            );
+
             CREATE TABLE IF NOT EXISTS Bankas_konts (
                 Bankas_konts_ID INTEGER PRIMARY KEY AUTOINCREMENT,
                 Lietotaja_ID INTEGER UNIQUE,
                 Bilance DECIMAL(10, 2),
-                FOREIGN KEY (Lietotaja_ID) REFERENCES Lietotajs(Lietotaja_ID)
+                Kartes_ID INTEGER,
+                FOREIGN KEY (Lietotaja_ID) REFERENCES Lietotajs(Lietotaja_ID),
+                FOREIGN KEY (Kartes_ID) REFERENCES Kartes(Karte_ID)
             );
             """;
 
