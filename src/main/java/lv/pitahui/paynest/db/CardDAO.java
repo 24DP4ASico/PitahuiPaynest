@@ -1,5 +1,10 @@
 package lv.pitahui.paynest.db;
 
+/**
+ * Apraksts (LV): `CardDAO` — datu piekļuves slānis kartēm (Kartes tabula).
+ * Description (EN): `CardDAO` — data access layer for cards (Kartes table).
+ */
+
 import pitahui.paynest.Card;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,6 +16,10 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class CardDAO {
 
+    /**
+     * funkcija createCard pieņem Card tipa vērtību card un atgriež boolean tipa vērtību result
+     * Create a new card row and create a linked bank account with a randomized test balance.
+     */
     public static boolean createCard(Card card) throws SQLException {
         String sql = "INSERT INTO Kartes (Lietotaja_ID, Kartes_numurs, Derigums, Kartes_vards) VALUES (?, ?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
@@ -38,6 +47,10 @@ public class CardDAO {
         }
     }
 
+    /**
+     * funkcija getByUserId pieņem Integer tipa vērtību userId un atgriež List<Card> tipa vērtību cards
+     * Retrieve all cards belonging to a user.
+     */
     public static List<Card> getByUserId(Integer userId) throws SQLException {
         String sql = "SELECT Karte_ID, Lietotaja_ID, Kartes_numurs, Derigums, Kartes_vards FROM Kartes WHERE Lietotaja_ID = ?";
         List<Card> cards = new ArrayList<>();
@@ -59,6 +72,10 @@ public class CardDAO {
         return cards;
     }
 
+    /**
+     * funkcija deleteById pieņem int tipa vērtību cardId un int tipa vērtību userId un atgriež boolean tipa vērtību result
+     * Delete a card by id for a specific user.
+     */
     public static boolean deleteById(int cardId, int userId) throws SQLException {
         String sql = "DELETE FROM Kartes WHERE Karte_ID = ? AND Lietotaja_ID = ?";
         try (Connection conn = DBConnection.getConnection();

@@ -1,5 +1,10 @@
 package pitahui.paynest;
 
+/**
+ * Apraksts (LV): Kartes modelis — satur kartes datus un util funkcijas.
+ * Description (EN): Card model — stores card data and utility methods.
+ */
+
 public class Card {
     private Integer id;
     private Integer userId;

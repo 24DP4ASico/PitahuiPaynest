@@ -1,5 +1,10 @@
 package lv.pitahui.paynest.db;
 
+/**
+ * Apraksts (LV): `NotificationDAO` — funkcijas paziņojumu ģenerēšanai un saglabāšanai datubāzē.
+ * Description (EN): `NotificationDAO` — functions for generating and storing notifications in DB.
+ */
+
 import lv.pitahui.paynest.Notification;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -14,6 +19,7 @@ import java.util.Map;
 public class NotificationDAO {
 
     /**
+     * funkcija insert pieņem Notification tipa vērtību notification un atgriež boolean tipa vērtību result
      * Inserts a notification into the Pazinojums table
      */
     public static boolean insert(Notification notification) throws SQLException {
@@ -33,6 +39,7 @@ public class NotificationDAO {
     }
 
     /**
+     * funkcija getNotificationsByUserId pieņem Integer tipa vērtību userId un atgriež List<Map<String, Object>> tipa vērtību notifications
      * Retrieves all notifications for a specific user
      */
     public static List<Map<String, Object>> getNotificationsByUserId(Integer userId) throws SQLException {
@@ -59,12 +66,17 @@ public class NotificationDAO {
     }
 
 
+    /**
+     * funkcija calculateDaysUntilExpiry pieņem Integer tipa vērtību durationDays un String tipa vērtību activationDate un atgriež Integer tipa vērtību daysUntilExpiry
+     * Calculate days from today until the subscription expiry date (expiry = activationDate + durationDays).
+     */
     public static Integer calculateDaysUntilExpiry(Integer durationDays, String activationDate) {
         if (durationDays == null || activationDate == null) {
             return null;
         }
 
         try {
+            // Compute expiry date by adding durationDays to activation date
             LocalDate activation = LocalDate.parse(activationDate);
             LocalDate expiryDate = activation.plusDays(durationDays);
             LocalDate today = LocalDate.now();
@@ -80,6 +92,7 @@ public class NotificationDAO {
     }
 
     /**
+     * funkcija createSubscriptionNotification pieņem Integer tipa vērtību lietotajaId un Integer tipa vērtību abonementaId un atgriež boolean tipa vērtību result
      * Creates a notification for a subscription with all details filled in
      */
     public static boolean createSubscriptionNotification(Integer lietotajaId, Integer abonementaId,
@@ -122,6 +135,7 @@ public class NotificationDAO {
     }
 
     /**
+     * funkcija existsNotification pieņem Integer tipa vērtību lietotajaId un Integer tipa vērtību abonementaId un atgriež boolean tipa vērtību exists
      * Checks whether a similar notification already exists for the given user, subscription and days-until-expiry.
      */
     private static boolean existsNotification(Integer lietotajaId, Integer abonementaId, Integer daysUntilExpiry) throws SQLException {
@@ -142,14 +156,15 @@ public class NotificationDAO {
     }
 
     /**
+     * funkcija generateExpiryNotificationsForToday pieņem null un atgriež void tipa vērtību result
      * Scan subscriptions and create notifications for those expiring today.
      */
     public static void generateExpiryNotificationsForToday() {
         try {
             var subs = SubscriptionDAO.listAll();
             for (var s : subs) {
-                Object durObj = s.get("duration");
-                Integer durationDays = durObj instanceof Number ? ((Number) durObj).intValue() : null;
+                Object durationObj = s.get("duration");
+                Integer durationDays = durationObj instanceof Number ? ((Number) durationObj).intValue() : null;
                 String activation = s.get("activated") != null ? s.get("activated").toString() : null;
                 Integer userId = s.get("lietotaja_id") instanceof Number ? ((Number) s.get("lietotaja_id")).intValue() : null;
                 Integer subId = s.get("id") instanceof Number ? ((Number) s.get("id")).intValue() : null;

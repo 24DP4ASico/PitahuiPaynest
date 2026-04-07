@@ -1,5 +1,10 @@
 package pitahui.paynest;
 
+/**
+ * Apraksts (LV): Bankas konta datu klase — saglabā konta informāciju.
+ * Description (EN): Bank account model class — holds account information.
+ */
+
 public class BankAccount {
     private Integer bankasKontsId;
     private Integer lietotajaId;

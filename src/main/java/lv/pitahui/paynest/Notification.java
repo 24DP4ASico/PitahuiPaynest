@@ -1,5 +1,10 @@
 package lv.pitahui.paynest;
 
+/**
+ * Apraksts (LV): Paziņojuma klase — satur informāciju par paziņojumiem un to metodi.
+ * Description (EN): Notification class — holds notification data and methods.
+ */
+
 public class Notification {
     private Integer notificationId;
     private Integer lietotajaId;

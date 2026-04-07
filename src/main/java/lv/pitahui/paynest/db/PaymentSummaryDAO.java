@@ -1,5 +1,10 @@
 package lv.pitahui.paynest.db;
 
+/**
+ * Apraksts (LV): `PaymentSummaryDAO` — kalkulē un saglabā mēneša kopējās izmaksas.
+ * Description (EN): `PaymentSummaryDAO` — calculates and stores monthly payment totals.
+ */
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,6 +15,7 @@ import java.time.format.DateTimeFormatter;
 public class PaymentSummaryDAO {
 
     /**
+     * funkcija calculateMonthlyTotal pieņem Integer tipa vērtību userId, int tipa vērtību year un int tipa vērtību month un atgriež double tipa vērtību total
      * Calculate total payments for a user for given year and month.
      * Month is 1-12.
      */
@@ -36,6 +42,9 @@ public class PaymentSummaryDAO {
         return 0.0;
     }
 
+    /**
+     * funkcija storeMonthlyTotal pieņem Integer tipa vērtību userId un String tipa vērtību monthYYYYMM un atgriež boolean tipa vērtību result
+     */
     public static boolean storeMonthlyTotal(Integer userId, String monthYYYYMM, double total) throws SQLException {
         String sql = "INSERT INTO Kopejas_izmaksas (Lietotaja_ID, Menesis, Summa, Izveides_datums) VALUES (?, ?, ?, datetime('now'))";
         try (Connection conn = DBConnection.getConnection();

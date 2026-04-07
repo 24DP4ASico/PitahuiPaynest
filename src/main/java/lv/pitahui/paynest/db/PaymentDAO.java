@@ -1,5 +1,10 @@
 package lv.pitahui.paynest.db;
 
+/**
+ * Apraksts (LV): `PaymentDAO` — pārvalda maksājumu rekordu CRUD un vaicājumus.
+ * Description (EN): `PaymentDAO` — manages payment records CRUD and queries.
+ */
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

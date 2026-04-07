@@ -1,5 +1,10 @@
 package pitahui.paynest;
 
+/**
+ * Apraksts (LV): Abonementa modelis — tur informāciju par lietotāja abonementiem.
+ * Description (EN): Subscription model — stores user's subscription data.
+ */
+
 import lv.pitahui.paynest.db.SubscriptionDAO;
 import java.sql.SQLException;
 

@@ -1,5 +1,10 @@
 package lv.pitahui.paynest.db;
 
+/**
+ * Apraksts (LV): `UserDAO` — datu piekļuves slānis lietotāju CRUD operācijām.
+ * Description (EN): `UserDAO` — data access layer for user CRUD operations.
+ */
+
 import pitahui.paynest.User;
 import java.sql.Connection;
 import java.sql.PreparedStatement;

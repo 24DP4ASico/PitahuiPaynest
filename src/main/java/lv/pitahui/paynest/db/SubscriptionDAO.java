@@ -1,5 +1,10 @@
 package lv.pitahui.paynest.db;
 
+/**
+ * Apraksts (LV): `SubscriptionDAO` — pārvalda abonementu datubāzes operācijas.
+ * Description (EN): `SubscriptionDAO` — manages subscription database operations.
+ */
+
 import pitahui.paynest.Subscription;
 import java.sql.Connection;
 import java.sql.PreparedStatement;

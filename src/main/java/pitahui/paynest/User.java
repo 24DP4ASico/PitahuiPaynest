@@ -1,5 +1,10 @@
 package pitahui.paynest;
 
+/**
+ * Apraksts (LV): Lietotāja modelis — satur lietotāja datus un util funkcijas.
+ * Description (EN): User model — contains user data and utility functions.
+ */
+
 import lv.pitahui.paynest.db.UserDAO;
 import java.sql.SQLException;
 

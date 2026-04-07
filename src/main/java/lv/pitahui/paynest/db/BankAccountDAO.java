@@ -1,5 +1,10 @@
 package lv.pitahui.paynest.db;
 
+/**
+ * Apraksts (LV): `BankAccountDAO` — pārvalda Bankas_konts tabulas operācijas un saistītas funkcijas.
+ * Description (EN): `BankAccountDAO` — manages Bankas_konts table operations and related functions.
+ */
+
 import pitahui.paynest.BankAccount;
 import java.sql.Connection;
 import java.sql.PreparedStatement;

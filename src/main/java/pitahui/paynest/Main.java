@@ -1,5 +1,10 @@
 package pitahui.paynest;
 
+/**
+ * Apraksts (LV): Galvenā komandrindas lietotāja saskarne un programmas plūsma.
+ * Description (EN): Main command-line UI and application flow.
+ */
+
 import lv.pitahui.paynest.db.DBConnection;
 import lv.pitahui.paynest.db.UserDAO;
 import lv.pitahui.paynest.db.SubscriptionDAO;
@@ -658,3 +663,8 @@ public class Main {
         for (int i = 0; i < 30; i++) System.out.println();
     }
 }
+
+
+
+
+

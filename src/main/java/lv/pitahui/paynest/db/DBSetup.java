@@ -1,5 +1,10 @@
 package lv.pitahui.paynest.db;
 
+/**
+ * Apraksts (LV): `DBSetup` — inicializē datubāzes shēmu un nepieciešamās tabulas.
+ * Description (EN): `DBSetup` — initializes database schema and required tables.
+ */
+
 import java.sql.Connection;
 import java.sql.Statement;
 import java.sql.ResultSet;

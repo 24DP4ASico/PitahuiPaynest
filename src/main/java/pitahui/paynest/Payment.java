@@ -1,5 +1,10 @@
 package pitahui.paynest;
 
+/**
+ * Apraksts (LV): Maksājuma modelis — satur informāciju par maksājumiem.
+ * Description (EN): Payment model — holds payment information.
+ */
+
 public class Payment {
 
     private double Sum;
