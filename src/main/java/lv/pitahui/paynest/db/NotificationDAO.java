@@ -66,10 +66,10 @@ public class NotificationDAO {
 
         try {
             LocalDate activation = LocalDate.parse(activationDate);
+            LocalDate expiryDate = activation.plusDays(durationDays);
             LocalDate today = LocalDate.now();
-            long daysSinceActivation = java.time.temporal.ChronoUnit.DAYS.between(activation, today);
 
-            long daysUntilExpiry = durationDays - daysSinceActivation;
+            long daysUntilExpiry = java.time.temporal.ChronoUnit.DAYS.between(today, expiryDate);
 
             // return signed number: negative => already expired, 0 => expires today
             return (int) daysUntilExpiry;

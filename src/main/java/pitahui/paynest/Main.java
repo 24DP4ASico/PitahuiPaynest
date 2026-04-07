@@ -132,7 +132,8 @@ public class Main {
                 System.out.println(" 4) Payment history");
                 System.out.println(" 5) Notifications");
                 System.out.println(" 6) Manage cards");
-                System.out.println(" 7) Logout");
+                System.out.println(" 7) Monthly total payments");
+                System.out.println(" 8) Logout");
             System.out.print("\n> ");
             String c = scanner.nextLine().trim();
             if (c.equals("1")) {
@@ -174,6 +175,22 @@ public class Main {
             } else if (c.equals("6")) {
                 manageCardsMenu(auth, scanner);
             } else if (c.equals("7")) {
+                // Monthly total payments
+                try {
+                    java.time.LocalDate now = java.time.LocalDate.now();
+                    int year = now.getYear();
+                    int month = now.getMonthValue();
+                    double total = lv.pitahui.paynest.db.PaymentSummaryDAO.calculateMonthlyTotal(auth.getId(), year, month);
+                    System.out.printf("Total spent in %d-%02d: %.2f EUR\n", year, month, total);
+                    // optionally store summary
+                    String ym = String.format("%d-%02d", year, month);
+                    try {
+                        lv.pitahui.paynest.db.PaymentSummaryDAO.storeMonthlyTotal(auth.getId(), ym, total);
+                    } catch (SQLException ignore) {}
+                } catch (SQLException e) {
+                    System.out.println("Error calculating monthly total: " + e.getMessage());
+                }
+            } else if (c.equals("8")) {
                 System.out.println("Logged out");
                 break;
             } else {

@@ -70,6 +70,15 @@ public class DBSetup {
                 FOREIGN KEY (Lietotaja_ID) REFERENCES Lietotajs(Lietotaja_ID),
                 FOREIGN KEY (Kartes_ID) REFERENCES Kartes(Karte_ID)
             );
+
+            CREATE TABLE IF NOT EXISTS Kopejas_izmaksas (
+                Kopejas_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                Lietotaja_ID INTEGER,
+                Menesis TEXT(7), -- format YYYY-MM
+                Summa DECIMAL(12,2),
+                Izveides_datums DATETIME,
+                FOREIGN KEY (Lietotaja_ID) REFERENCES Lietotajs(Lietotaja_ID)
+            );
             """;
 
         try (Connection conn = DBConnection.getConnection();
