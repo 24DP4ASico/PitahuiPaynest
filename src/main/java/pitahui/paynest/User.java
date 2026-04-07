@@ -15,6 +15,7 @@ public class User {
     private String phonenum;
     private String IBAN;
     private String password;
+    private String language = "LV"; // default language (LV - Latvian)
 
     public User(String Name, String Surname, String Phonenum, String IBAN) {
         this.lietotajaId = null;
@@ -78,6 +79,14 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
     }
 
     public void changeName(String newName) {

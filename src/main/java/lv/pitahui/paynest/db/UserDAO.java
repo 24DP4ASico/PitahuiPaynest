@@ -13,7 +13,7 @@ import java.sql.SQLException;
 public class UserDAO {
 
     public static void insert(User user) throws SQLException {
-        String sql = "INSERT INTO Lietotajs (Vards, Uzvards, Talrunis, IBAN, Password) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Lietotajs (Vards, Uzvards, Talrunis, IBAN, Password, Language) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -23,13 +23,14 @@ public class UserDAO {
             pstmt.setString(3, user.getPhonenum());
             pstmt.setString(4, user.getIBAN());
             pstmt.setString(5, user.getPassword());
+            pstmt.setString(6, user.getLanguage());
 
             pstmt.executeUpdate();
         }
     }
 
     public static User authenticate(String phone, String password) throws SQLException {
-        String sql = "SELECT Lietotaja_ID, Vards, Uzvards, Talrunis, IBAN, Password FROM Lietotajs WHERE Talrunis = ? AND Password = ?";
+        String sql = "SELECT Lietotaja_ID, Vards, Uzvards, Talrunis, IBAN, Password, Language FROM Lietotajs WHERE Talrunis = ? AND Password = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
@@ -40,6 +41,7 @@ public class UserDAO {
                 if (rs.next()) {
                     User u = new User(rs.getInt("Lietotaja_ID"), rs.getString("Vards"), rs.getString("Uzvards"), rs.getString("Talrunis"), rs.getString("IBAN"));
                     u.setPassword(rs.getString("Password"));
+                    try { u.setLanguage(rs.getString("Language")); } catch (Exception ignore) {}
                     return u;
                 }
             }
@@ -84,7 +86,7 @@ public class UserDAO {
     }
 
     public static User getByPhone(String phone) throws SQLException {
-        String sql = "SELECT Lietotaja_ID, Vards, Uzvards, Talrunis, IBAN, Password FROM Lietotajs WHERE Talrunis = ?";
+        String sql = "SELECT Lietotaja_ID, Vards, Uzvards, Talrunis, IBAN, Password, Language FROM Lietotajs WHERE Talrunis = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
@@ -93,6 +95,7 @@ public class UserDAO {
                 if (rs.next()) {
                     User u = new User(rs.getInt("Lietotaja_ID"), rs.getString("Vards"), rs.getString("Uzvards"), rs.getString("Talrunis"), rs.getString("IBAN"));
                     u.setPassword(rs.getString("Password"));
+                    try { u.setLanguage(rs.getString("Language")); } catch (Exception ignore) {}
                     return u;
                 }
             }
@@ -123,6 +126,28 @@ public class UserDAO {
             pu.setString(4, newIban);
             pu.setString(5, phone);
 
+            int affected = pu.executeUpdate();
+            return affected > 0;
+        }
+    }
+
+    public static boolean updateLanguage(String phone, String newLanguage) throws SQLException {
+        String verify = "SELECT Lietotaja_ID FROM Lietotajs WHERE Talrunis = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement vp = conn.prepareStatement(verify)) {
+
+            vp.setString(1, phone);
+            try (java.sql.ResultSet rs = vp.executeQuery()) {
+                if (!rs.next()) return false;
+            }
+        }
+
+        String upd = "UPDATE Lietotajs SET Language = ? WHERE Talrunis = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pu = conn.prepareStatement(upd)) {
+
+            pu.setString(1, newLanguage);
+            pu.setString(2, phone);
             int affected = pu.executeUpdate();
             return affected > 0;
         }

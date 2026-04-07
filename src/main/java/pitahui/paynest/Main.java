@@ -2,7 +2,6 @@ package pitahui.paynest;
 
 /**
  * Apraksts (LV): Galvenā komandrindas lietotāja saskarne un programmas plūsma.
- * Description (EN): Main command-line UI and application flow.
  */
 
 import lv.pitahui.paynest.db.DBConnection;
@@ -26,7 +25,7 @@ import lv.pitahui.paynest.db.CardDAO;
 public class Main {
     public static void main(String[] args) {
         clearScreen();
-        printHeader("Pitahui Paynest - Terminal Interface");
+        printHeader(Messages.t("app.title"));
 
         Scanner scanner = new Scanner(System.in);
         // generate notifications for subscriptions expiring today
@@ -34,11 +33,11 @@ public class Main {
         try {
             while (true) {
                 printSeparator();
-                System.out.println("Main menu\n");
-                System.out.println(" 1) Register");
-                System.out.println(" 2) Login");
-                System.out.println(" 3) Delete account");
-                System.out.println(" 4) Exit");
+                System.out.println(Messages.t("menu.main.title"));
+                System.out.println(Messages.t("menu.main.register"));
+                System.out.println(Messages.t("menu.main.login"));
+                System.out.println(Messages.t("menu.main.delete"));
+                System.out.println(Messages.t("menu.main.exit"));
                 System.out.print("\n> ");
                 String choice = scanner.nextLine().trim();
 
@@ -49,10 +48,10 @@ public class Main {
                 } else if (choice.equals("3")) {
                     deleteFlow(scanner);
                 } else if (choice.equals("4")) {
-                    System.out.println("Exiting. Goodbye.");
+                    System.out.println(Messages.t("exiting"));
                     break;
                 } else {
-                    System.out.println("Unknown choice — please enter 1, 2, 3 or 4");
+                    System.out.println(Messages.t("unknown.choice"));
                 }
             }
         } finally {
@@ -62,7 +61,7 @@ public class Main {
 
     private static void registerFlow(Scanner scanner) {
         printSeparator();
-        System.out.println("Create new account\n");
+        System.out.println(Messages.t("create.title"));
         System.out.print(" First name: ");
         String fn = scanner.nextLine().trim();
         System.out.print(" Last name : ");
@@ -84,28 +83,30 @@ public class Main {
             if (created != null) {
                 // Create bank account for new user with zero initial balance
                 BankAccountDAO.createAccount(created.getId(), 0.0);
-                System.out.println("\nAccount created for " + fn + " " + ln);
-                System.out.printf("Initial bank account balance: %.2f EUR\n", 0.0);
+                System.out.println(Messages.t("account.created") + fn + " " + ln);
+                System.out.printf(Messages.t("initial.balance") + "%.2f EUR\n", 0.0);
             }
         } catch (SQLException e) {
-            System.out.println("Error creating account: " + e.getMessage());
+            System.out.println(Messages.t("error.create") + e.getMessage());
         }
     }
 
     private static void loginFlow(Scanner scanner) {
         try {
             printSeparator();
-            System.out.println("Login\n");
+            System.out.println(Messages.t("login.title"));
             System.out.print(" Phone: ");
             String phone = scanner.nextLine().trim();
             System.out.print(" Password: ");
             String pwd = scanner.nextLine();
             User auth = UserDAO.authenticate(phone, pwd);
             if (auth != null) {
-                System.out.println("\nLogin success: " + auth.getName() + " " + auth.getSurname());
+                System.out.println(Messages.t("login.success") + auth.getName() + " " + auth.getSurname());
+                // apply user's language to messages
+                Messages.setLanguage(auth.getLanguage());
                 userMenu(auth, scanner);
             } else {
-                System.out.println("\nLogin failed: wrong phone or password");
+                System.out.println(Messages.t("login.failed"));
             }
         } catch (SQLException e) {
             System.out.println("Error during login: " + e.getMessage());
@@ -115,13 +116,13 @@ public class Main {
     private static void deleteFlow(Scanner scanner) {
         try {
             printSeparator();
-            System.out.println("Delete account\n");
+            System.out.println(Messages.t("delete.title"));
             System.out.print(" Phone to delete: ");
             String phone = scanner.nextLine().trim();
             System.out.print(" Password: ");
             String pwd = scanner.nextLine();
             boolean deleted = UserDAO.deleteByPhoneAndPassword(phone, pwd);
-            System.out.println(deleted ? "\nAccount deleted" : "\nNo matching account");
+            System.out.println(deleted ? Messages.t("account.deleted") : Messages.t("no.match"));
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
         }
@@ -130,15 +131,15 @@ public class Main {
     private static void userMenu(User auth, Scanner scanner) throws SQLException {
         while (true) {
             printSeparator();
-            System.out.println("User menu\n");
-                System.out.println(" 1) Subscriptions");
-                System.out.println(" 2) Account settings");
-                System.out.println(" 3) Pay for subscription");
-                System.out.println(" 4) Payment history");
-                System.out.println(" 5) Notifications");
-                System.out.println(" 6) Manage cards");
-                System.out.println(" 7) Monthly total payments");
-                System.out.println(" 8) Logout");
+            System.out.println(Messages.t("user.menu.title"));
+                System.out.println(Messages.t("user.menu.subs"));
+                System.out.println(Messages.t("user.menu.settings"));
+                System.out.println(Messages.t("user.menu.pay"));
+                System.out.println(Messages.t("user.menu.history"));
+                System.out.println(Messages.t("user.menu.notifications"));
+                System.out.println(Messages.t("user.menu.managecards"));
+                System.out.println(Messages.t("user.menu.monthly"));
+                System.out.println(Messages.t("user.menu.logout"));
             System.out.print("\n> ");
             String c = scanner.nextLine().trim();
             if (c.equals("1")) {
@@ -196,10 +197,10 @@ public class Main {
                     System.out.println("Error calculating monthly total: " + e.getMessage());
                 }
             } else if (c.equals("8")) {
-                System.out.println("Logged out");
+                System.out.println(Messages.t("logged.out"));
                 break;
             } else {
-                System.out.println("Unknown choice");
+                System.out.println(Messages.t("unknown.choice"));
             }
         }
     }
@@ -560,7 +561,7 @@ public class Main {
 
     private static void accountSettingsMenu(User auth, Scanner scanner) throws SQLException {
         printSeparator();
-        System.out.println("Account settings: 1=View 2=Edit account data 3=Change password 4=Delete account 5=Back");
+        System.out.println("Account settings: 1=View 2=Edit account data 3=Change password 4=Delete account 5=Change language 6=Back");
         System.out.print("\n> ");
         String a = scanner.nextLine().trim();
         if (a.equals("1")) {
@@ -644,10 +645,42 @@ public class Main {
                 System.out.println("You have been logged out (account deleted).");
                 return; // return to main menu
             }
+        } else if (a.equals("5")) {
+            // Change language
+            String current = auth.getLanguage() != null ? auth.getLanguage() : "LV";
+            String currentName = switch (current.toUpperCase()) {
+                case "EN" -> "English";
+                case "RU" -> "Russian";
+                default -> "Latvian";
+            };
+            System.out.println("Current language: " + currentName + " (" + current + ")");
+            System.out.println("Choose language: 1=English 2=Russian 3=Latvian 4=Cancel");
+            System.out.print("\n> ");
+            String langChoice = scanner.nextLine().trim();
+            String code = null;
+            switch (langChoice) {
+                case "1": code = "EN"; break;
+                case "2": code = "RU"; break;
+                case "3": code = "LV"; break;
+                default: System.out.println("Language change cancelled"); break;
+            }
+            if (code != null) {
+                try {
+                    boolean ok = UserDAO.updateLanguage(auth.getPhonenum(), code);
+                    System.out.println(ok ? "Language updated to " + code : "Failed to update language");
+                    if (ok) {
+                        auth.setLanguage(code);
+                        Messages.setLanguage(code);
+                    }
+                } catch (SQLException e) {
+                    System.out.println("Error updating language: " + e.getMessage());
+                }
+            }
         } else {
             // back
         }
-    }
+        }
+    
 
     private static void printHeader(String title) {
         System.out.println("========================================");

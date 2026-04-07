@@ -22,7 +22,8 @@ public class DBSetup {
                 Uzvards TEXT(60),
                 Talrunis TEXT(15) UNIQUE,
                 IBAN TEXT(32) UNIQUE,
-                Password TEXT(100)
+                Password TEXT(100),
+                Language TEXT(5) DEFAULT 'LV'
             );
 
             CREATE TABLE IF NOT EXISTS Abonements (
@@ -132,10 +133,53 @@ public class DBSetup {
 
     public static void main(String[] args) {
         try {
-            initializeTables();
-            System.out.println("Database initialized successfully.");
+            if (args != null && args.length > 0 && "recreateLietotajs".equalsIgnoreCase(args[0])) {
+                recreateLietotajs();
+                System.out.println("Table Lietotajs recreated successfully.");
+            } else {
+                initializeTables();
+                System.out.println("Database initialized successfully.");
+            }
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * Drops and recreates the `Lietotajs` table. This will remove the existing
+     * `Lietotajs` table and create a fresh one using the same schema as
+     * `initializeTables` uses. Foreign key checks are temporarily disabled
+     * to allow the operation; use with caution as dependent data may become
+     * orphaned.
+     */
+    public static void recreateLietotajs() throws SQLException {
+        String dropAndCreate = """
+            PRAGMA foreign_keys = OFF;
+            DROP TABLE IF EXISTS Lietotajs;
+
+            CREATE TABLE Lietotajs (
+                Lietotaja_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                Vards TEXT(60),
+                Uzvards TEXT(60),
+                Talrunis TEXT(15) UNIQUE,
+                IBAN TEXT(32) UNIQUE,
+                Password TEXT(100),
+                Language TEXT(5) DEFAULT 'LV'
+            );
+
+            PRAGMA foreign_keys = ON;
+            """;
+
+        try (Connection conn = DBConnection.getConnection();
+             Statement stmt = conn.createStatement()) {
+
+            stmt.executeUpdate(dropAndCreate);
+
+            // Insert sample admin user if table is empty
+            if (isTableEmpty("Lietotajs")) {
+                String sampleData = "INSERT INTO Lietotajs (Vards, Uzvards, Talrunis, IBAN, Password) VALUES ('Admin', 'User', '0000', 'LV00TEST000000000000', 'admin');";
+                stmt.executeUpdate(sampleData);
+            }
         }
     }
 }
