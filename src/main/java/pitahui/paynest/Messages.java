@@ -6,11 +6,13 @@ public class Messages {
     private static String lang = "LV";
 
     public static void setLanguage(String code) {
+        // funkcija setLanguage pieņem String tipa vērtību code un atgriež void tipa vērtību
         if (code == null) return;
         lang = code.toUpperCase(Locale.ROOT);
     }
 
     public static String t(String key) {
+        // funkcija t pieņem String tipa vērtību key un atgriež String tipa vērtību (tulkots ziņojums)
         switch (lang) {
             case "EN": return tEn(key);
             case "RU": return tRu(key);
@@ -19,6 +21,7 @@ public class Messages {
     }
 
     private static String tEn(String k) {
+        // funkcija tEn pieņem String tipa vērtību k un atgriež String tipa vērtību (angļu tulkojums)
         return switch (k) {
             case "app.title" -> "Pitahui Paynest - Terminal Interface";
             case "menu.main.title" -> "Main menu\n";
@@ -54,6 +57,7 @@ public class Messages {
     }
 
     private static String tLv(String k) {
+        // funkcija tLv pieņem String tipa vērtību k un atgriež String tipa vērtību (latviešu tulkojums)
         return switch (k) {
             case "app.title" -> "Pitahui Paynest - Termināļa saskarne";
             case "menu.main.title" -> "Galvenā izvēlne\n";
@@ -89,6 +93,7 @@ public class Messages {
     }
 
     private static String tRu(String k) {
+        // funkcija tRu pieņem String tipa vērtību k un atgriež String tipa vērtību (krievu tulkojums)
         return switch (k) {
             case "app.title" -> "Pitahui Paynest - Терминальный интерфейс";
             case "menu.main.title" -> "Главное меню\n";

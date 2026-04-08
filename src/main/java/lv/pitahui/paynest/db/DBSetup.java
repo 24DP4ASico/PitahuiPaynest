@@ -13,6 +13,8 @@ import java.sql.SQLException;
 public class DBSetup {
 
     public static void initializeTables() throws SQLException {
+        // funkcija initializeTables pieņem void tipa vērtību un atgriež void tipa vērtību
+        // Šī funkcija izpilda SQL skriptu, lai izveidotu nepieciešamās tabulas un ievietotu piemēru datus.
         String sql = """
             PRAGMA foreign_keys = ON;
 
@@ -120,6 +122,7 @@ public class DBSetup {
     }
 
     private static boolean isTableEmpty(String tableName) throws SQLException {
+        // funkcija isTableEmpty pieņem String tipa vērtību tableName un atgriež boolean tipa vērtību (true ja tukša)
         String sql = "SELECT COUNT(*) as cnt FROM " + tableName;
         try (Connection conn = DBConnection.getConnection();
              Statement stmt = conn.createStatement();
@@ -132,6 +135,7 @@ public class DBSetup {
     }
 
     public static void main(String[] args) {
+        // funkcija main pieņem String[] tipa vērtību args un atgriež void tipa vērtību
         try {
             if (args != null && args.length > 0 && "recreateLietotajs".equalsIgnoreCase(args[0])) {
                 recreateLietotajs();
@@ -153,6 +157,8 @@ public class DBSetup {
      * orphaned.
      */
     public static void recreateLietotajs() throws SQLException {
+        // funkcija recreateLietotajs pieņem void tipa vērtību un atgriež void tipa vērtību
+        // Droši pārveido tabulu `Lietotajs` — izdzēš un izveido no jauna.
         String dropAndCreate = """
             PRAGMA foreign_keys = OFF;
             DROP TABLE IF EXISTS Lietotajs;

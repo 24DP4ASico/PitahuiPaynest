@@ -13,6 +13,7 @@ import java.sql.SQLException;
 public class BankAccountDAO {
 
     public static BankAccount getByUserId(Integer userId) throws SQLException {
+        // funkcija getByUserId pieņem Integer tipa vērtību userId un atgriež BankAccount tipa vērtību
         String sql = "SELECT Bankas_konts_ID, Lietotaja_ID, Bilance, Kartes_ID FROM Bankas_konts WHERE Lietotaja_ID = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -34,10 +35,12 @@ public class BankAccountDAO {
     }
 
     public static boolean createAccount(Integer userId, double initialBalance) throws SQLException {
+        // funkcija createAccount pieņem Integer tipa vērtību userId un double tipa vērtību initialBalance un atgriež boolean tipa vērtību
         return createAccountWithCard(userId, initialBalance, null);
     }
 
     public static boolean createAccountWithCard(Integer userId, double initialBalance, Integer kartesId) throws SQLException {
+        // funkcija createAccountWithCard pieņem Integer tipa vērtību userId, double tipa vērtību initialBalance un Integer tipa vērtību kartesId un atgriež boolean tipa vērtību
         String sql = "INSERT INTO Bankas_konts (Lietotaja_ID, Bilance, Kartes_ID) VALUES (?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -51,6 +54,7 @@ public class BankAccountDAO {
     }
 
     public static BankAccount getByCardId(Integer kartesId) throws SQLException {
+        // funkcija getByCardId pieņem Integer tipa vērtību kartesId un atgriež BankAccount tipa vērtību
         String sql = "SELECT Bankas_konts_ID, Lietotaja_ID, Bilance, Kartes_ID FROM Bankas_konts WHERE Kartes_ID = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -72,6 +76,7 @@ public class BankAccountDAO {
     }
 
     public static boolean linkCardToUser(Integer userId, Integer kartesId) throws SQLException {
+        // funkcija linkCardToUser pieņem Integer tipa vērtību userId un Integer tipa vērtību kartesId un atgriež boolean tipa vērtību
         String sql = "UPDATE Bankas_konts SET Kartes_ID = ? WHERE Lietotaja_ID = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -83,6 +88,7 @@ public class BankAccountDAO {
     }
 
     public static boolean updateBalance(Integer userId, double newBalance) throws SQLException {
+        // funkcija updateBalance pieņem Integer tipa vērtību userId un double tipa vērtību newBalance un atgriež boolean tipa vērtību
         String sql = "UPDATE Bankas_konts SET Bilance = ? WHERE Lietotaja_ID = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -95,6 +101,7 @@ public class BankAccountDAO {
     }
 
     public static boolean hasEnoughBalance(Integer userId, double amount) throws SQLException {
+        // funkcija hasEnoughBalance pieņem Integer tipa vērtību userId un double tipa vērtību amount un atgriež boolean tipa vērtību
         BankAccount account = getByUserId(userId);
         if (account == null) {
             return false;

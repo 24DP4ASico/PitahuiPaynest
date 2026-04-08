@@ -24,6 +24,7 @@ import lv.pitahui.paynest.db.CardDAO;
 
 public class Main {
     public static void main(String[] args) {
+        // funkcija main pieņem String[] tipa vērtību args un atgriež void tipa vērtību
         clearScreen();
         printHeader(Messages.t("app.title"));
 
@@ -60,6 +61,7 @@ public class Main {
     }
 
     private static void registerFlow(Scanner scanner) {
+        // funkcija registerFlow pieņem Scanner tipa vērtību scanner un atgriež void tipa vērtību
         printSeparator();
         System.out.println(Messages.t("create.title"));
         System.out.print(" First name: ");
@@ -92,6 +94,7 @@ public class Main {
     }
 
     private static void loginFlow(Scanner scanner) {
+        // funkcija loginFlow pieņem Scanner tipa vērtību scanner un atgriež void tipa vērtību
         try {
             printSeparator();
             System.out.println(Messages.t("login.title"));
@@ -114,6 +117,7 @@ public class Main {
     }
 
     private static void deleteFlow(Scanner scanner) {
+        // funkcija deleteFlow pieņem Scanner tipa vērtību scanner un atgriež void tipa vērtību
         try {
             printSeparator();
             System.out.println(Messages.t("delete.title"));
@@ -129,6 +133,7 @@ public class Main {
     }
 
     private static void userMenu(User auth, Scanner scanner) throws SQLException {
+        // funkcija userMenu pieņem User tipa vērtību auth un Scanner tipa vērtību scanner un atgriež void tipa vērtību
         while (true) {
             printSeparator();
             System.out.println(Messages.t("user.menu.title"));
@@ -206,6 +211,7 @@ public class Main {
     }
 
     private static void manageCardsMenu(User auth, Scanner scanner) throws SQLException {
+        // funkcija manageCardsMenu pieņem User tipa vērtību auth un Scanner tipa vērtību scanner un atgriež void tipa vērtību
         while (true) {
             printSeparator();
             System.out.println("Manage cards: 1=List 2=Add card 3=Delete 4=Back");
@@ -253,6 +259,7 @@ public class Main {
     }
 
     private static void subscriptionsMenu(User auth, Scanner scanner) throws SQLException {
+        // funkcija subscriptionsMenu pieņem User tipa vērtību auth un Scanner tipa vērtību scanner un atgriež void tipa vērtību
         printSeparator();
         System.out.println("Subscriptions: 1=List 2=Create 3=Edit 4=Delete 5=Filter 6=Find 7=Back");
         System.out.print("\n> ");
@@ -397,6 +404,7 @@ public class Main {
     }
 
     private static void paymentFlow(User auth, Scanner scanner) throws SQLException {
+        // funkcija paymentFlow pieņem User tipa vērtību auth un Scanner tipa vērtību scanner un atgriež void tipa vērtību
         printSeparator();
         System.out.println("Pay for subscription\n");
 
@@ -539,6 +547,7 @@ public class Main {
     }
 
     private static void paymentHistoryMenu(User auth, Scanner scanner) throws SQLException {
+        // funkcija paymentHistoryMenu pieņem User tipa vērtību auth un Scanner tipa vērtību scanner un atgriež void tipa vērtību
         printSeparator();
         System.out.println("Payment History\n");
 
@@ -560,6 +569,7 @@ public class Main {
     }
 
     private static void accountSettingsMenu(User auth, Scanner scanner) throws SQLException {
+        // funkcija accountSettingsMenu pieņem User tipa vērtību auth un Scanner tipa vērtību scanner un atgriež void tipa vērtību
         printSeparator();
         System.out.println("Account settings: 1=View 2=Edit account data 3=Change password 4=Delete account 5=Change language 6=Back");
         System.out.print("\n> ");
@@ -683,16 +693,19 @@ public class Main {
     
 
     private static void printHeader(String title) {
+        // funkcija printHeader pieņem String tipa vērtību title un atgriež void tipa vērtību
         System.out.println("========================================");
         System.out.println(title);
         System.out.println("========================================");
     }
 
     private static void printSeparator() {
+        // funkcija printSeparator pieņem void tipa vērtību un atgriež void tipa vērtību
         System.out.println("----------------------------------------");
     }
 
     private static void clearScreen() {
+        // funkcija clearScreen pieņem void tipa vērtību un atgriež void tipa vērtību
         for (int i = 0; i < 30; i++) System.out.println();
     }
 }

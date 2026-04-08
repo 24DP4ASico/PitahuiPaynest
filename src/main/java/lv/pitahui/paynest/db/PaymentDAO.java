@@ -19,6 +19,7 @@ import java.util.Map;
 public class PaymentDAO {
 
     public static boolean recordPayment(Integer abonementaId, Integer lietotajaId, double summa, String statuss) throws SQLException {
+        // funkcija recordPayment pieņem Integer tipa vērtību abonementaId, Integer tipa vērtību lietotajaId, double tipa vērtību summa un String tipa vērtību statuss un atgriež boolean tipa vērtību
         String sql = "INSERT INTO Maksajums (Abonementa_ID, Lietotaja_ID, Summa, Datums_un_Laiks, Statuss) VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -39,6 +40,7 @@ public class PaymentDAO {
     }
 
     public static List<Map<String, Object>> getPaymentHistoryByUserId(Integer userId) throws SQLException {
+        // funkcija getPaymentHistoryByUserId pieņem Integer tipa vērtību userId un atgriež List<Map<String, Object>> tipa vērtību (maksājumu vēsture)
         String sql = """
                 SELECT m.Maksajuma_ID, m.Abonementa_ID, a.Nosaukums, m.Summa, m.Datums_un_Laiks, m.Statuss
                 FROM Maksajums m

@@ -13,6 +13,7 @@ public class DBConnection {
     private static final String DB_URL = "jdbc:sqlite:paynest.db";
 
     public static Connection getConnection() throws SQLException {
+        // funkcija getConnection pieņem void tipa vērtību un atgriež Connection tipa vērtību (savienojums ar SQLite DB)
         return DriverManager.getConnection(DB_URL);
     }
 }

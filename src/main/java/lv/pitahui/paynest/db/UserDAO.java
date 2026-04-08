@@ -13,6 +13,7 @@ import java.sql.SQLException;
 public class UserDAO {
 
     public static void insert(User user) throws SQLException {
+        // funkcija insert pieņem User tipa vērtību user un atgriež void tipa vērtību
         String sql = "INSERT INTO Lietotajs (Vards, Uzvards, Talrunis, IBAN, Password, Language) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DBConnection.getConnection();
@@ -30,6 +31,7 @@ public class UserDAO {
     }
 
     public static User authenticate(String phone, String password) throws SQLException {
+        // funkcija authenticate pieņem String tipa vērtību phone un String tipa vērtību password un atgriež User tipa vērtību
         String sql = "SELECT Lietotaja_ID, Vards, Uzvards, Talrunis, IBAN, Password, Language FROM Lietotajs WHERE Talrunis = ? AND Password = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -50,6 +52,7 @@ public class UserDAO {
     }
 
     public static boolean deleteByPhoneAndPassword(String phone, String password) throws SQLException {
+        // funkcija deleteByPhoneAndPassword pieņem String tipa vērtību phone un String tipa vērtību password un atgriež boolean tipa vērtību
         String sql = "DELETE FROM Lietotajs WHERE Talrunis = ? AND Password = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -62,6 +65,7 @@ public class UserDAO {
     }
 
     public static boolean changePassword(String phone, String oldPassword, String newPassword) throws SQLException {
+        // funkcija changePassword pieņem String tipa vērtību phone, String tipa vērtību oldPassword un String tipa vērtību newPassword un atgriež boolean tipa vērtību
         // Verify old password then update
         String verify = "SELECT Lietotaja_ID FROM Lietotajs WHERE Talrunis = ? AND Password = ?";
         try (Connection conn = DBConnection.getConnection();
@@ -86,6 +90,7 @@ public class UserDAO {
     }
 
     public static User getByPhone(String phone) throws SQLException {
+        // funkcija getByPhone pieņem String tipa vērtību phone un atgriež User tipa vērtību
         String sql = "SELECT Lietotaja_ID, Vards, Uzvards, Talrunis, IBAN, Password, Language FROM Lietotajs WHERE Talrunis = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -104,6 +109,7 @@ public class UserDAO {
     }
 
     public static boolean updateProfile(String phone, String oldPassword, String newFirst, String newLast, String newPhone, String newIban) throws SQLException {
+        // funkcija updateProfile pieņem String tipa vērtību phone, String tipa vērtību oldPassword, String tipa vērtību newFirst, String tipa vērtību newLast, String tipa vērtību newPhone un String tipa vērtību newIban un atgriež boolean tipa vērtību
         // Verify old password
         String verify = "SELECT Lietotaja_ID FROM Lietotajs WHERE Talrunis = ? AND Password = ?";
         try (Connection conn = DBConnection.getConnection();
@@ -132,6 +138,7 @@ public class UserDAO {
     }
 
     public static boolean updateLanguage(String phone, String newLanguage) throws SQLException {
+        // funkcija updateLanguage pieņem String tipa vērtību phone un String tipa vērtību newLanguage un atgriež boolean tipa vērtību
         String verify = "SELECT Lietotaja_ID FROM Lietotajs WHERE Talrunis = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement vp = conn.prepareStatement(verify)) {

@@ -19,6 +19,7 @@ import java.util.Map;
 public class SubscriptionDAO {
 
     public static void insert(Subscription s) throws SQLException {
+        // funkcija insert pieņem Subscription tipa vērtību s un atgriež void tipa vērtību
         String sql = "INSERT INTO Abonements (Nosaukums, Veids, Cena, Ilgums, Lietotaja_ID, Aktivizacijas_datums) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DBConnection.getConnection();
@@ -46,6 +47,7 @@ public class SubscriptionDAO {
     }
 
     public static List<Map<String,Object>> listAll() throws SQLException {
+        // funkcija listAll pieņem void tipa vērtību un atgriež List<Map<String,Object>> tipa vērtību (abonementu saraksts)
         String sql = "SELECT Abonementa_ID, Nosaukums, Veids, Cena, Ilgums, Aktivizacijas_datums, Lietotaja_ID FROM Abonements";
         List<Map<String,Object>> out = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection();
@@ -68,6 +70,7 @@ public class SubscriptionDAO {
     }
 
     public static boolean deleteById(int id) throws SQLException {
+        // funkcija deleteById pieņem int tipa vērtību id un atgriež boolean tipa vērtību
         String sql = "DELETE FROM Abonements WHERE Abonementa_ID = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -79,6 +82,7 @@ public class SubscriptionDAO {
     }
 
     public static boolean update(int id, Subscription s) throws SQLException {
+        // funkcija update pieņem int tipa vērtību id un Subscription tipa vērtību s un atgriež boolean tipa vērtību
         String sql = "UPDATE Abonements SET Nosaukums = ?, Veids = ?, Cena = ?, Ilgums = ? WHERE Abonementa_ID = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -99,6 +103,7 @@ public class SubscriptionDAO {
     }
 
     public static pitahui.paynest.Subscription getById(int id) throws SQLException {
+        // funkcija getById pieņem int tipa vērtību id un atgriež Subscription tipa vērtību
         String sql = "SELECT Nosaukums, Veids, Cena, Ilgums, Lietotaja_ID FROM Abonements WHERE Abonementa_ID = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -119,6 +124,7 @@ public class SubscriptionDAO {
     }
 
     public static boolean updateActivationDate(int id, String activationDate) throws SQLException {
+        // funkcija updateActivationDate pieņem int tipa vērtību id un String tipa vērtību activationDate un atgriež boolean tipa vērtību
         String sql = "UPDATE Abonements SET Aktivizacijas_datums = ? WHERE Abonementa_ID = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
