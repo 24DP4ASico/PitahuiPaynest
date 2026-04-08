@@ -1,11 +1,8 @@
 # Pitahui PayNest
-Abonementu pārvaldības sistēma
 
-Pitahui PayNest ir lietotne, kas paredzēta, lai lietotāji varētu ērti pārvaldīt visus savus abonementus vienuviet. Tā piedāvā vienkāršu, pārskatāmu un drošu veidu, kā sekot abonementu termiņiem, maksājumiem, izmaksām un paziņojumiem.
+Pitahui PayNest ir termināļa tipa abonementu pārvaldības sistēma, kas palīdz lietotājam vienuviet pārskatīt abonementus, veikt maksājumus, sekot paziņojumiem par termiņiem un kontrolēt ikmēneša izdevumus.
 
----
-
-## 📌 Saturs
+## Saturs
 - [Projekta apraksts](#projekta-apraksts)
 - [Galvenās funkcijas](#galvenās-funkcijas)
 - [Mērķauditorija](#mērķauditorija)
@@ -13,165 +10,103 @@ Pitahui PayNest ir lietotne, kas paredzēta, lai lietotāji varētu ērti pārva
 - [Sistēmas struktūra](#sistēmas-struktūra)
 - [Datu struktūra](#datu-struktūra)
 - [Izmantotās tehnoloģijas](#izmantotās-tehnoloģijas)
-- [Komanda](#komanda)
+- [Komanda un lietotāju instrukcija](#komanda-un-lietotāju-instrukcija)
 
----
+## Projekta apraksts
 
-## 📖 Projekta apraksts
+Mūsdienās lietotāji izmanto vairākus digitālos servisus vienlaikus, tāpēc abonementu termiņi un izmaksas bieži tiek aizmirstas. Pitahui PayNest risina šo problēmu, nodrošinot centralizētu sistēmu, kur lietotājs var:
+- reģistrēt un pārvaldīt savus abonementus,
+- redzēt maksājumu vēsturi,
+- saņemt paziņojumus par abonementu beigām,
+- sekot līdzi mēneša kopējiem izdevumiem.
 
-Mūsdienās lietotāji pārvalda arvien vairāk abonementu: straumēšanas platformas, produktivitātes rīkus, spēļu servisus, mākoņkrātuves u.c. Informācija par maksājumiem ir izkliedēta, un bieži tiek aizmirsti termiņi, kas rada liekus izdevumus un sarežģī ikdienas finanšu pārvaldību.
+Sistēma darbojas komandrindā un glabā datus SQLite datubāzē.
 
-**Pitahui PayNest piedāvā vienotu vietu, kur:**
-- apskatīt visus abonementus,
-- sekot maksājumiem un termiņiem,
-- saņemt paziņojumus,
-- pārvaldīt maksājumus un statistiku,
-- vienkāršot ikdienas finanšu uzraudzību.
+## Galvenās funkcijas
 
-Šī lietotne fokusējas uz vienkāršību, pieejamību un plašu lietotāju loku — no jauniešiem līdz senioriem.
+- Lietotāju pārvaldība: reģistrācija, pieteikšanās, profila labošana, paroles maiņa, valodas maiņa (LV/EN/RU), konta dzēšana.
+- Abonementu pārvaldība: abonementu pievienošana, skatīšana, rediģēšana, dzēšana, filtrēšana un meklēšana.
+- Maksājumi: abonementa apmaksa no lietotāja konta bilances, maksājuma statusa reģistrēšana (veiksmīgs/neveiksmīgs), aktivizācijas datuma atjaunošana pēc apmaksas.
+- Maksājumu vēsture: detalizēts saraksts ar summām, datumiem un statusiem.
+- Paziņojumi: automātiska paziņojumu ģenerēšana par abonementiem, kuri beidzas drīz vai jau beigušies.
+- Karšu pārvaldība: kartes pievienošana, apskate un dzēšana.
+- Mēneša kopsumma: lietotāja mēneša izdevumu aprēķins un saglabāšana.
 
----
+## Mērķauditorija
 
-## ✅ Galvenās funkcijas
+- Privātpersonas, kurām ir vairāki regulāri abonementi (piem., mūzika, video, mākoņpakalpojumi, programmatūras rīki).
+- Studenti un jaunie profesionāļi, kuri vēlas kontrolēt ikmēneša izdevumus.
+- Lietotāji, kuri dod priekšroku vienkāršai komandrindas lietotnei bez sarežģītas grafiskās saskarnes.
 
-### 📌 Abonementu pārvaldība
-- Abonementu pievienošana, rediģēšana un dzēšana.
-- Taimeris līdz abonementa beigām.
-- Visi abonementi vienuviet.
+## Konkurentu analīze
 
-### 💳 Maksājumu pārvaldība
-- Automātiskie maksājumi.
-- Maksājumu vēsture.
-- Vienas dienas abonementu apvienošana vienā maksājumā.
+Tipiski tirgus risinājumi (piem., Rocket Money, Monarch Money, PocketGuard) bieži fokusējas uz plašu personīgo finanšu pārvaldību vai konkrētiem reģioniem.
 
-### 🔔 Paziņojumi
-- Atgādinājumi par abonementu termiņiem.
-- Detalizēts paziņojumu saraksts.
-- Atlikušo dienu aprēķins.
+Pitahui PayNest atšķiras ar:
+- fokusu tieši uz abonementu ciklu (abonements -> maksājums -> paziņojums),
+- vienkāršu termināļa saskarni,
+- vieglu izstrādi un testēšanu akadēmiskā/prototipa vidē,
+- daudzvalodu atbalstu lietotāja interfeisā.
 
-### 📊 Statistika
-- Abonementu diagrammas un tabulas.
-- Kopējo izmaksu aprēķins.
-- Mēneša pārskati.
+## Sistēmas struktūra
 
-### 👤 Lietotāju pārvaldība
-- Lietotāja datu ievade un rediģēšana.
-- Droša informācijas glabāšana.
+Sistēma ir veidota no šādiem slāņiem:
 
----
+- Lietotāja saskarne (CLI): izvēlnes un lietotāja darbību plūsmas klasē `Main`.
+- Domēna modeļi: `User`, `Subscription`, `Payment`, `Card`, `BankAccount`, `Notification`.
+- Datu piekļuves slānis (DAO): `UserDAO`, `SubscriptionDAO`, `PaymentDAO`, `NotificationDAO`, `CardDAO`, `BankAccountDAO`, `PaymentSummaryDAO`.
+- Datubāzes inicializācija: `DBSetup` izveido tabulas un sākotnējos datus.
+- Savienojums ar DB: `DBConnection` pārvalda SQLite pieslēgumu.
 
-## 🎯 Mērķauditorija
+## Datu struktūra
 
-Pitahui PayNest paredzēta:
+Galvenās SQLite tabulas:
 
-- Jauniešiem (16–25), kas aktīvi izmanto digitālos pakalpojumus.
-- Pieaugušajiem (26–65+), kuri regulāri pārvalda ikmēneša maksājumus.
-- Senioriem un lietotājiem ar minimālām tehniskām zināšanām.
+- `Lietotajs`: lietotāja identitāte, kontaktdati, parole, valoda.
+- `Abonements`: abonementa nosaukums, veids, cena, ilgums, aktivizācijas datums, saite uz lietotāju.
+- `Maksajums`: saite uz abonementu un lietotāju, summa, datums/laiks, statuss.
+- `Pazinojums`: paziņojuma teksts, izveides datums, dienas līdz termiņam, saites uz lietotāju un abonementu.
+- `Kartes`: lietotāja kartes informācija.
+- `Bankas_konts`: lietotāja konta bilance un saite uz karti.
+- `Kopejas_izmaksas`: lietotāja mēneša kopējie izdevumi.
 
-Lietotne ir maksimāli vienkārša, skaidra un pieejama visiem.
+## Izmantotās tehnoloģijas
 
----
+- Java 21
+- Maven
+- SQLite (`sqlite-jdbc`)
+- VS Code (izstrādes vide)
+- Git/GitHub (versiju kontrole)
 
-## 📊 Konkurentu analīze
+## Komanda un lietotāju instrukcija
 
-### 🔹 Rocket Money
-- Automātiska abonementu noteikšana, atcelšana un rēķinu sarunas.
-- Ierobežots ASV tirgum.
+### Komanda
+- Timurs Sibiļovs
+- Ēriks Vansovičs
+- Anželika Sičova
 
-### 🔹 Monarch Money
-- Plaša finanšu vadība (investīcijas, budžets, analītika).
-- Sarežģītāka un maksas.
+### Lietotāju instrukcija
 
-### 🔹 PocketGuard
-- Vienkārša ikdienas finanšu pārraudzība.
-- Mazāk iespēju tieši abonementiem.
-
-### ✅ **Pitahui PayNest priekšrocības**
-- Globāls risinājums (nav tikai ASV tirgum).
-- Ļoti vienkāršs interfeiss.
-- Atbalsta vairākas personas (ģimenes režīms).
-- Nav slēpto maksu.
-- Fokusēts tieši uz abonementiem, nevis liekām funkcijām.
-
----
-
-## 🏗️ Sistēmas struktūra
-
-Sistēmu veido trīs galvenās apakšsistēmas:
-
-### 🔸 1. Abonementu apstrādes apakšsistēma
-- Abonementu pievienošana, rediģēšana, dzēšana.
-- Atjaunošanas termiņu uzraudzība.
-
-### 🔸 2. Maksājumu apstrādes apakšsistēma
-- Automātiskie maksājumi.
-- Maksājumu vēsture un pārskati.
-- Vienotie maksājumi.
-
-### 🔸 3. Paziņojumu apstrādes apakšsistēma
-- Brīdinājumi par termiņiem.
-- Lietotāja atbildes un paziņojumu arhīvs.
-
----
-
-## 🗂️ Datu struktūra
-
-Sistēma izmanto četras galvenās tabulas:
-
-### **1. lietotajs**
-- vārds, uzvārds
-- tālrunis
-- IBAN
-- saite ar maksājumiem un paziņojumiem
-
-### **2. abonementi**
-- nosaukums
-- tips
-- cena
-- ilgums
-- saite ar maksājumiem un paziņojumiem
-
-### **3. maksajums**
-- datums
-- summa
-- statuss
-
-### **4. pazinojums**
-- abonementa termiņš
-- brīdinājuma teksts
-- atlikušās dienas
-
----
-
-## 🛠️ Izmantotās tehnoloģijas
-
-- **Java** – galvenā programmēšanas valoda
-- **Visual Studio Code** – izstrādes vide
-- **Teksta faili** – datu glabāšana
-- **GitHub** – versiju kontrole
-- **Trello** – uzdevumu pārvaldība
-
----
-
-## 👥 Komanda
-- **Timurs Sibiļovs**
-- **Ēriks Vansovičs**
-- **Anželika Sičova**
-
----
-
-## 📄 Licence
-*(Ja nepieciešams, varu pievienot MIT, GPL, CC BY-NC u.c.)*
-
----
-
-## Build (Maven)
-
-Project has been refactored to a standard Maven layout. To build with Java 21:
+1. Atveriet projektu un pārliecinieties, ka ir pieejams JDK 21.
+2. Komandrindā projekta mapē izpildiet:
 
 ```bash
-mvn -v
 mvn clean package
 ```
 
-If you use the JDK directly, sources are under `src/main/java/pitahui/paynest`.
+3. Palaidiet lietotni no IDE, izmantojot galveno klasi `pitahui.paynest.Main`.
+4. Galvenajā izvēlnē izvēlieties:
+- `1` lai reģistrētu jaunu kontu,
+- `2` lai pieteiktos,
+- `3` lai dzēstu kontu,
+- `4` lai izietu.
+5. Pēc pieteikšanās lietotāja izvēlnē varēsiet:
+- pārvaldīt abonementus,
+- mainīt konta iestatījumus,
+- veikt maksājumu,
+- apskatīt maksājumu vēsturi,
+- pārvaldīt paziņojumus,
+- pārvaldīt kartes,
+- apskatīt mēneša kopējos izdevumus.
+
+Ieteikums testēšanai: reģistrējiet jaunu lietotāju, pievienojiet abonementu, veiciet maksājumu un pēc tam pārbaudiet maksājumu vēsturi un paziņojumu sadaļu.
