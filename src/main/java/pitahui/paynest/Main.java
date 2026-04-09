@@ -23,6 +23,15 @@ import pitahui.paynest.Card;
 import lv.pitahui.paynest.db.CardDAO;
 
 public class Main {
+    // ANSI escape codes for terminal colors
+    private static final String RESET = "\u001B[0m";
+    private static final String RED = "\u001B[31m";
+    private static final String GREEN = "\u001B[32m";
+    private static final String YELLOW = "\u001B[33m";
+    private static final String BLUE = "\u001B[34m";
+    private static final String MAGENTA = "\u001B[35m";
+    private static final String CYAN = "\u001B[36m";
+
     public static void main(String[] args) {
         // funkcija main pieņem String[] tipa vērtību args un atgriež void tipa vērtību
         clearScreen();
@@ -34,12 +43,12 @@ public class Main {
         try {
             while (true) {
                 printSeparator();
-                System.out.println(Messages.t("menu.main.title"));
-                System.out.println(Messages.t("menu.main.register"));
-                System.out.println(Messages.t("menu.main.login"));
-                System.out.println(Messages.t("menu.main.delete"));
-                System.out.println(Messages.t("menu.main.exit"));
-                System.out.print("\n> ");
+                System.out.println(colorText(Messages.t("menu.main.title"), CYAN));
+                System.out.println(colorText(Messages.t("menu.main.register"), GREEN));
+                System.out.println(colorText(Messages.t("menu.main.login"), GREEN));
+                System.out.println(colorText(Messages.t("menu.main.delete"), GREEN));
+                System.out.println(colorText(Messages.t("menu.main.exit"), GREEN));
+                System.out.print(colorText("\n> ", MAGENTA));
                 String choice = scanner.nextLine().trim();
 
                 if (choice.equals("1")) {
@@ -63,16 +72,16 @@ public class Main {
     private static void registerFlow(Scanner scanner) {
         // funkcija registerFlow pieņem Scanner tipa vērtību scanner un atgriež void tipa vērtību
         printSeparator();
-        System.out.println(Messages.t("create.title"));
-        System.out.print(" First name: ");
+        System.out.println(colorText(Messages.t("create.title"), BLUE));
+        System.out.print(colorText(" First name: ", YELLOW));
         String fn = scanner.nextLine().trim();
-        System.out.print(" Last name : ");
+        System.out.print(colorText(" Last name : ", YELLOW));
         String ln = scanner.nextLine().trim();
-        System.out.print(" Phone     : ");
+        System.out.print(colorText(" Phone     : ", YELLOW));
         String phone = scanner.nextLine().trim();
-        System.out.print(" IBAN      : ");
+        System.out.print(colorText(" IBAN      : ", YELLOW));
         String iban = scanner.nextLine().trim();
-        System.out.print(" Password  : ");
+        System.out.print(colorText(" Password  : ", YELLOW));
         String pwd = scanner.nextLine();
 
         try {
@@ -97,10 +106,10 @@ public class Main {
         // funkcija loginFlow pieņem Scanner tipa vērtību scanner un atgriež void tipa vērtību
         try {
             printSeparator();
-            System.out.println(Messages.t("login.title"));
-            System.out.print(" Phone: ");
+            System.out.println(colorText(Messages.t("login.title"), BLUE));
+            System.out.print(colorText(" Phone: ", YELLOW));
             String phone = scanner.nextLine().trim();
-            System.out.print(" Password: ");
+            System.out.print(colorText(" Password: ", YELLOW));
             String pwd = scanner.nextLine();
             User auth = UserDAO.authenticate(phone, pwd);
             if (auth != null) {
@@ -120,10 +129,10 @@ public class Main {
         // funkcija deleteFlow pieņem Scanner tipa vērtību scanner un atgriež void tipa vērtību
         try {
             printSeparator();
-            System.out.println(Messages.t("delete.title"));
-            System.out.print(" Phone to delete: ");
+            System.out.println(colorText(Messages.t("delete.title"), BLUE));
+            System.out.print(colorText(" Phone to delete: ", YELLOW));
             String phone = scanner.nextLine().trim();
-            System.out.print(" Password: ");
+            System.out.print(colorText(" Password: ", YELLOW));
             String pwd = scanner.nextLine();
             boolean deleted = UserDAO.deleteByPhoneAndPassword(phone, pwd);
             System.out.println(deleted ? Messages.t("account.deleted") : Messages.t("no.match"));
@@ -136,16 +145,16 @@ public class Main {
         // funkcija userMenu pieņem User tipa vērtību auth un Scanner tipa vērtību scanner un atgriež void tipa vērtību
         while (true) {
             printSeparator();
-            System.out.println(Messages.t("user.menu.title"));
-                System.out.println(Messages.t("user.menu.subs"));
-                System.out.println(Messages.t("user.menu.settings"));
-                System.out.println(Messages.t("user.menu.pay"));
-                System.out.println(Messages.t("user.menu.history"));
-                System.out.println(Messages.t("user.menu.notifications"));
-                System.out.println(Messages.t("user.menu.managecards"));
-                System.out.println(Messages.t("user.menu.monthly"));
-                System.out.println(Messages.t("user.menu.logout"));
-            System.out.print("\n> ");
+            System.out.println(colorText(Messages.t("user.menu.title"), MAGENTA));
+                System.out.println(colorText(Messages.t("user.menu.subs"), CYAN));
+                System.out.println(colorText(Messages.t("user.menu.settings"), CYAN));
+                System.out.println(colorText(Messages.t("user.menu.pay"), CYAN));
+                System.out.println(colorText(Messages.t("user.menu.history"), CYAN));
+                System.out.println(colorText(Messages.t("user.menu.notifications"), CYAN));
+                System.out.println(colorText(Messages.t("user.menu.managecards"), CYAN));
+                System.out.println(colorText(Messages.t("user.menu.monthly"), CYAN));
+                System.out.println(colorText(Messages.t("user.menu.logout"), CYAN));
+            System.out.print(colorText("\n> ", MAGENTA));
             String c = scanner.nextLine().trim();
             if (c.equals("1")) {
                 subscriptionsMenu(auth, scanner);
@@ -692,16 +701,21 @@ public class Main {
         }
     
 
+    private static String colorText(String text, String color) {
+        // funkcija colorText pieņem tekstu un krāsu kodu, atgriež formatēta ANSI teksta virkni
+        return color + text + RESET;
+    }
+
     private static void printHeader(String title) {
         // funkcija printHeader pieņem String tipa vērtību title un atgriež void tipa vērtību
-        System.out.println("========================================");
-        System.out.println(title);
-        System.out.println("========================================");
+        System.out.println(colorText("========================================", BLUE));
+        System.out.println(colorText(title, CYAN));
+        System.out.println(colorText("========================================", BLUE));
     }
 
     private static void printSeparator() {
         // funkcija printSeparator pieņem void tipa vērtību un atgriež void tipa vērtību
-        System.out.println("----------------------------------------");
+        System.out.println(colorText("----------------------------------------", YELLOW));
     }
 
     private static void clearScreen() {
