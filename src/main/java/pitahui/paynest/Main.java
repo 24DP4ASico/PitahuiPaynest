@@ -4,23 +4,19 @@ package pitahui.paynest;
  * Apraksts (LV): Galvenā komandrindas lietotāja saskarne un programmas plūsma.
  */
 
-import lv.pitahui.paynest.db.DBConnection;
-import lv.pitahui.paynest.db.UserDAO;
-import lv.pitahui.paynest.db.SubscriptionDAO;
-import lv.pitahui.paynest.db.BankAccountDAO;
-import lv.pitahui.paynest.db.PaymentDAO;
-import lv.pitahui.paynest.db.NotificationDAO;
-import java.time.LocalDate;
-import java.sql.Connection;
-import java.sql.ResultSet;
+import java.io.Console;
 import java.sql.SQLException;
-import java.sql.Statement;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.List;
-import pitahui.paynest.Card;
+
+import lv.pitahui.paynest.db.BankAccountDAO;
 import lv.pitahui.paynest.db.CardDAO;
+import lv.pitahui.paynest.db.NotificationDAO;
+import lv.pitahui.paynest.db.PaymentDAO;
+import lv.pitahui.paynest.db.SubscriptionDAO;
+import lv.pitahui.paynest.db.UserDAO;
 
 public class Main {
     // ANSI escape codes for terminal colors
@@ -81,8 +77,7 @@ public class Main {
         String phone = scanner.nextLine().trim();
         System.out.print(colorText(" IBAN      : ", YELLOW));
         String iban = scanner.nextLine().trim();
-        System.out.print(colorText(" Password  : ", YELLOW));
-        String pwd = scanner.nextLine();
+        String pwd = readPassword(scanner, " Password  : ");
 
         try {
             User u = new User(fn, ln, phone, iban);
@@ -109,8 +104,7 @@ public class Main {
             System.out.println(colorText(Messages.t("login.title"), BLUE));
             System.out.print(colorText(" Phone: ", YELLOW));
             String phone = scanner.nextLine().trim();
-            System.out.print(colorText(" Password: ", YELLOW));
-            String pwd = scanner.nextLine();
+            String pwd = readPassword(scanner, " Password: ");
             User auth = UserDAO.authenticate(phone, pwd);
             if (auth != null) {
                 System.out.println(Messages.t("login.success") + auth.getName() + " " + auth.getSurname());
@@ -132,8 +126,7 @@ public class Main {
             System.out.println(colorText(Messages.t("delete.title"), BLUE));
             System.out.print(colorText(" Phone to delete: ", YELLOW));
             String phone = scanner.nextLine().trim();
-            System.out.print(colorText(" Password: ", YELLOW));
-            String pwd = scanner.nextLine();
+            String pwd = readPassword(scanner, " Password: ");
             boolean deleted = UserDAO.deleteByPhoneAndPassword(phone, pwd);
             System.out.println(deleted ? Messages.t("account.deleted") : Messages.t("no.match"));
         } catch (SQLException e) {
@@ -499,8 +492,7 @@ public class Main {
         }
 
         // Confirm with password
-        System.out.print("\nEnter your password to confirm payment: ");
-        String pwd = scanner.nextLine();
+        String pwd = readPassword(scanner, "\nEnter your password to confirm payment: ");
         User verified = UserDAO.authenticate(auth.getPhonenum(), pwd);
 
         if (verified == null) {
@@ -587,8 +579,7 @@ public class Main {
             User u = UserDAO.getByPhone(auth.getPhonenum());
             System.out.println(u != null ? u : "No account found");
         } else if (a.equals("2")) {
-            System.out.print("Enter current password to confirm: ");
-            String oldp = scanner.nextLine();
+            String oldp = readPassword(scanner, "Enter current password to confirm: ");
             User current = UserDAO.getByPhone(auth.getPhonenum());
             if (current == null) {
                 System.out.println("Current user not found");
@@ -643,12 +634,9 @@ public class Main {
         } else if (a.equals("3")) {
             System.out.print("Phone: ");
             String phone = scanner.nextLine().trim();
-            System.out.print("Old password: ");
-            String oldp = scanner.nextLine();
-            System.out.print("New password: ");
-            String newp = scanner.nextLine();
-            System.out.print("Confirm new password: ");
-            String conf = scanner.nextLine();
+            String oldp = readPassword(scanner, "Old password: ");
+            String newp = readPassword(scanner, "New password: ");
+            String conf = readPassword(scanner, "Confirm new password: ");
             if (!newp.equals(conf)) {
                 System.out.println("New password and confirmation do not match");
             } else {
@@ -656,8 +644,7 @@ public class Main {
                 System.out.println(ok ? "Password changed" : "Password change failed");
             }
         } else if (a.equals("4")) {
-            System.out.print("Enter your password to confirm deletion: ");
-            String pwd = scanner.nextLine();
+            String pwd = readPassword(scanner, "Enter your password to confirm deletion: ");
             boolean deleted = UserDAO.deleteByPhoneAndPassword(auth.getPhonenum(), pwd);
             System.out.println(deleted ? "Account deleted" : "Delete failed");
             if (deleted) {
@@ -704,6 +691,22 @@ public class Main {
     private static String colorText(String text, String color) {
         // funkcija colorText pieņem tekstu un krāsu kodu, atgriež formatēta ANSI teksta virkni
         return color + text + RESET;
+    }
+
+    private static String readPassword(Scanner scanner, String prompt) {
+        // funkcija readPassword nolasa paroli no termināļa un neizdrukā tās tiešo tekstu
+        Console console = System.console();
+        if (console != null) {
+            char[] pwdChars = console.readPassword(colorText(prompt, YELLOW));
+            if (pwdChars == null) return "";
+            String pwd = new String(pwdChars);
+            java.util.Arrays.fill(pwdChars, ' ');
+            return pwd;
+        }
+        System.out.print(colorText(prompt, YELLOW));
+        String pwd = scanner.nextLine();
+        System.out.println(colorText("****", YELLOW));
+        return pwd;
     }
 
     private static void printHeader(String title) {
